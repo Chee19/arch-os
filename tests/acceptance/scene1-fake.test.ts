@@ -6,6 +6,7 @@ import { Conflict } from "@/engine/errors";
 import { ladderOf, latestOps } from "@/engine/ladder";
 import { CASE_ID, secureCase } from "@/engine/scene1";
 import { col, getDemo } from "@/engine/store";
+import { stripe } from "@/money/stripe";
 import {
   closeDb,
   editCase,
@@ -18,12 +19,16 @@ import {
 
 const hook = vi.hoisted(() => ({
   onCreate: (async () => {}) as (x: Record<string, unknown>) => Promise<void>,
+  beforeCreate: (() => {}) as (key: string) => void,
 }));
 
 // Runs the real engine without the Stripe sandbox; only stripe() is swapped.
 vi.mock("@/money/stripe", async (importOriginal) => {
   const { fakeStripe } = await import("./fakeStripe");
-  const fake = fakeStripe((x) => hook.onCreate(x));
+  const fake = fakeStripe(
+    (x) => hook.onCreate(x),
+    (k) => hook.beforeCreate(k),
+  );
   return {
     ...(await importOriginal<typeof import("@/money/stripe")>()),
     stripe: () => fake.s,
@@ -37,6 +42,8 @@ const configure = (d: Db) =>
     source: "scripted",
   });
 const accept = (d: Db) => handle(d, { action: "respond", decision: "accept" });
+const stripeError = (type: string, message: string) =>
+  Object.assign(new Error(message), { type });
 
 describe.skipIf(!process.env.MONGODB_URI)(
   "Scene 1 engine with a fake Stripe",
@@ -210,6 +217,107 @@ describe.skipIf(!process.env.MONGODB_URI)(
           status: "open",
         }),
       ]);
+    });
+
+    it("(g) Recheck re-sends a refund Stripe never received, with the same key and one op row", async () => {
+      const keys: string[] = [];
+      hook.beforeCreate = (k) => {
+        if (!k.includes(":refund:")) return;
+        keys.push(k);
+        throw stripeError("StripeConnectionError", "Connection reset");
+      };
+      await configure(d);
+      await runUntil(d, "consent");
+      await accept(d);
+      await runUntil(d, "secure");
+      const stuck = latestOps((await snapshot(d)).ops).refund;
+      expect(stuck).toMatchObject({ state: "requested", stripeId: null });
+
+      hook.beforeCreate = (k) => void keys.push(k);
+      await handle(d, { action: "recheck", opId: stuck?.opId ?? "" });
+      const { ops } = await snapshot(d);
+      const refunds = ops.filter((o) => o.kind === "refund");
+      expect(refunds).toEqual([
+        expect.objectContaining({ opId: stuck?.opId, state: "succeeded" }),
+      ]);
+      expect(keys.length).toBeGreaterThan(1);
+      expect(new Set(keys)).toEqual(new Set([stuck?.opId]));
+      hook.beforeCreate = () => {};
+    });
+
+    it("(h) Refund now leaves out what staff already refunded in the Stripe dashboard", async () => {
+      await configure(d);
+      await runUntil(d, "consent");
+      await editCase(d, expireHold);
+      await accept(d);
+      const { ops, exceptions } = await snapshot(d);
+      await stripe().refunds.create(
+        { payment_intent: latestOps(ops).charge?.stripeId ?? "", amount: 1000 },
+        { idempotencyKey: "staff-dashboard-refund" },
+      );
+      await handle(d, {
+        action: "exception",
+        exceptionId: exceptions[0].exceptionId,
+        do: "refund",
+      });
+      expect(latestOps((await snapshot(d)).ops).full_refund).toMatchObject({
+        state: "succeeded",
+        amountPence: 29000,
+      });
+    });
+
+    it("(i) a refund Stripe rejects is never told to the customer as processing or done", async () => {
+      hook.beforeCreate = (k) => {
+        if (k.includes(":refund:"))
+          throw stripeError("StripeInvalidRequestError", "Refund declined");
+      };
+      await configure(d);
+      await runUntil(d, "consent");
+      await accept(d);
+      await runUntil(d, "secure");
+      hook.beforeCreate = () => {};
+      const { c, ops } = await snapshot(d);
+      expect(latestOps(ops).refund?.state).toBe("failed");
+      const told = c.messages.filter((m) => m.to === "customer").at(-1)?.text;
+      expect(told).toContain(
+        "Your £20 refund did not go through. Our team will retry it.",
+      );
+      expect(told).not.toMatch(/refunded|being processed/);
+    });
+
+    it("(j) retrying a failed transfer revalidates settle and moves no money on a deny", async () => {
+      hook.onCreate = async (x) => {
+        if (String(x.id).startsWith("tr_")) x.reversed = true;
+      };
+      await configure(d);
+      await runUntil(d, "consent");
+      await accept(d);
+      await runUntil(d, "settle");
+      hook.onCreate = async () => {};
+      const failed = await snapshot(d);
+      const transfer = latestOps(failed.ops).transfer;
+      expect(transfer?.state).toBe("failed");
+      const priya = failed.exceptions.find((e) => e.opId === transfer?.opId);
+
+      await editCase(d, (c) => ({ ...c, originalProviderPaid: true }));
+      await handle(d, {
+        action: "exception",
+        exceptionId: priya?.exceptionId ?? "",
+        do: "retry",
+      });
+      const { runId, ops, exceptions } = await snapshot(d);
+      expect(
+        ops.filter((o) => o.kind === "transfer").map((o) => o.attempt),
+      ).toEqual([1]);
+      expect(exceptions).toContainEqual(
+        expect.objectContaining({
+          exceptionId: `EXC:${runId}:${CASE_ID}:settle`,
+          owner: "Sam Okafor",
+          reason: "unfunded",
+          action: "retry",
+          status: "open",
+        }),
+      );
     });
   },
 );

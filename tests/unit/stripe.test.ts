@@ -1,6 +1,17 @@
-import { describe, expect, it } from "vitest";
+import type Stripe from "stripe";
+import { describe, expect, it, vi } from "vitest";
 import { ConfigError } from "@/engine/errors";
-import { assertTestKey, dashboardUrl } from "@/money/stripe";
+import { assertTestKey, dashboardUrl, stripe } from "@/money/stripe";
+
+describe("stripe client", () => {
+  it("caps each request at 15 s and keeps two network retries", () => {
+    vi.stubEnv("STRIPE_SECRET_KEY", "sk_test_unit");
+    const s = stripe() as Stripe;
+    vi.unstubAllEnvs();
+    expect(s.getApiField("timeout")).toBe(15_000);
+    expect(s.getApiField("maxNetworkRetries")).toBe(2);
+  });
+});
 
 describe("assertTestKey", () => {
   it("accepts secret and restricted test keys", () => {

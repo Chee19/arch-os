@@ -59,8 +59,8 @@ export function EvidenceTabs() {
   };
   return (
     <section id="evidence" className="evidence" aria-label="Evidence">
+      <div className="eyebrow">Evidence</div>
       <div className="tabs evidence-tabs" role="tablist">
-        <span className="eyebrow">Evidence</span>
         {TABS.map((t) => (
           <button
             key={t}
@@ -78,12 +78,6 @@ export function EvidenceTabs() {
         {tab === "reasoning" && <AgentConsole />}
         {tab === "candidates" && (
           <section className="panel">
-            <div className="panel-head between">
-              <h2>Candidates</h2>
-              <span className="mono muted">
-                {c.candidates.length} PROVIDERS
-              </span>
-            </div>
             {c.candidates.length ? (
               <div className="candidate-grid">
                 {c.candidates.map((p) => (

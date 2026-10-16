@@ -1743,8 +1743,8 @@ td .minor {
   padding: 0;
   margin-bottom: 14px;
 }
-.evidence-tabs .eyebrow {
-  margin-right: 10px;
+.evidence > .eyebrow {
+  margin-bottom: 4px;
 }
 .demo-disclaimer {
   padding: 0 22px 12px;

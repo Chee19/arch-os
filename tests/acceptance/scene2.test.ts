@@ -1,12 +1,34 @@
 import type { Db } from "mongodb";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { handle } from "@/engine/actions";
+import { MARKET } from "@/engine/case";
 import type { DemoDoc } from "@/engine/docs";
+import { find } from "@/engine/records";
 import { rescueRecovery } from "@/engine/rescue";
+import { advance } from "@/engine/run";
 import { loadState } from "@/engine/state";
-import { col, loadRecords } from "@/engine/store";
+import { col, getDemo, loadRecords, persist, tx } from "@/engine/store";
 import { money } from "@/lib/format";
 import { closeDb, runToEnd, testDb } from "./helpers";
+
+const hook = vi.hoisted(() => ({
+  afterRead: null as null | (() => Promise<void>),
+}));
+
+// Lets a test change records after the rescue reads its plan inputs and before it commits.
+vi.mock("@/engine/store", async (importOriginal) => {
+  const real = await importOriginal<typeof import("@/engine/store")>();
+  return {
+    ...real,
+    loadRecords: async (...args: Parameters<typeof real.loadRecords>) => {
+      const recs = await real.loadRecords(...args);
+      const fn = hook.afterRead;
+      hook.afterRead = null;
+      if (fn) await fn();
+      return recs;
+    },
+  };
+});
 
 async function runScene2(d: Db): Promise<DemoDoc> {
   await handle(d, {
@@ -183,5 +205,61 @@ describe("scene 2: 30 cancelled instead of 3", () => {
     const before = await snapshot();
     await rescueRecovery(d);
     expect(await snapshot()).toBe(before);
+  });
+
+  it("hands a booking whose planned slot is taken mid-rescue to Priya Shah", async () => {
+    await handle(d, {
+      action: "configure",
+      scenario: "bulk-cancel",
+      source: "scripted",
+    });
+    let cur = await getDemo(d);
+    while (cur.steps[cur.step] !== "restore") {
+      if (cur.status === "awaiting_approval")
+        await handle(d, { action: "approve", confirmed: true });
+      else await advance(d, cur.step);
+      cur = await getDemo(d);
+    }
+    // Another client books BK-2009's planned slot after the rescue planned it.
+    hook.afterRead = () =>
+      tx(async (session) => {
+        const recs = await loadRecords(d, "bulk-cancel", session);
+        const slot = find(recs, MARKET, "SLOT-clearhome-r1");
+        if (!slot) throw new Error("SLOT-clearhome-r1 is missing.");
+        await persist(
+          d,
+          "bulk-cancel",
+          recs,
+          [
+            {
+              system: MARKET,
+              recordId: slot.recordId,
+              data: { ...slot.data, status: "booked", bookingId: "BK-9001" },
+            },
+          ],
+          session,
+        );
+      });
+    await advance(d, cur.step);
+    expect(hook.afterRead).toBeNull();
+
+    const { runId } = cur;
+    const item = (target: string) => col.items(d).findOne({ runId, target });
+    expect(await item("BK-2009")).toMatchObject({
+      status: "manual",
+      outcome: null,
+      assignedTo: "Priya Shah",
+    });
+    expect(await item("BK-2019")).toMatchObject({ outcome: "replaced" });
+    expect(
+      await col.exceptions(d).findOne({ runId, target: "BK-2009" }),
+    ).toMatchObject({ owner: "Priya Shah", status: "open" });
+    expect((await col.incidents(d).findOne({ runId }))?.committedPence).toBe(
+      2000,
+    );
+    expect(
+      (await col.audit(d).findOne({ runId, action: "rescue.allocate" }))
+        ?.detail,
+    ).toMatch(/^1 replaced, 2 handed to a person\./);
   });
 });

@@ -8,8 +8,10 @@ type Params = Record<string, unknown>;
 
 // Objects are keyed by metadata.opId, which the outbox always sets equal to the idempotency key.
 // onCreate sees each object as created, so a test can change what later retrieves return.
+// beforeCreate can throw to fail a call before Stripe stores anything.
 export function fakeStripe(
   onCreate: (x: Obj) => Promise<void> = async () => {},
+  beforeCreate: (key: string) => void = () => {},
 ) {
   const calls: string[] = [];
   const intents: Obj[] = [];
@@ -26,6 +28,7 @@ export function fakeStripe(
     (xs: Obj[], prefix: string, fields: (p: Params) => Params) =>
     async (p: Params, o: { idempotencyKey: string }) => {
       calls.push(`create:${o.idempotencyKey}`);
+      beforeCreate(o.idempotencyKey);
       const x =
         xs.find((y) => y.metadata.opId === o.idempotencyKey) ??
         add(xs, prefix, {

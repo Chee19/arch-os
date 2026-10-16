@@ -236,25 +236,3 @@ export async function verifyRecovery(d: Db): Promise<IncidentDoc> {
     approvedIntact,
   };
 }
-
-export async function assign(d: Db, target: string, by: string): Promise<void> {
-  const demo = await getDemo(d);
-  const res = await col.items(d).updateOne(
-    {
-      runId: demo.runId,
-      target,
-      status: { $in: ["manual", "failed", "skipped"] },
-    },
-    { $set: { assignedTo: by } },
-  );
-  if (!res.matchedCount)
-    throw new StepError(`${target} is not waiting for a person.`);
-  await audit(d, {
-    runId: demo.runId,
-    actor: by,
-    action: "exception.assign",
-    detail: `${target} assigned to ${by}. Still unresolved.`,
-    decision: "Assigned",
-    operationId: null,
-  });
-}

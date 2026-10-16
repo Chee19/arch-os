@@ -27,6 +27,8 @@ export function stripe(): StripeClient {
     apiVersion: STRIPE_API_VERSION,
     // Network retries are safe because every money call carries an idempotency key.
     maxNetworkRetries: 2,
+    // The SDK default of 80 s per try would outlast a demo step; a timeout is ambiguous, so Recheck resolves it.
+    timeout: 15_000,
   });
   return client;
 }

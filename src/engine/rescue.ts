@@ -112,7 +112,8 @@ export async function rescueRecovery(d: Db): Promise<void> {
     conflicts.map((i) => i.target),
   );
   const plan = allocate(cases, slots, incident);
-  let changed = 0;
+  const handOver = [...plan.unassigned];
+  let replaced = 0;
 
   for (const a of plan.assigned) {
     // One transaction per booking: reassignment, item and budget commit together or not at all.
@@ -120,14 +121,14 @@ export async function rescueRecovery(d: Db): Promise<void> {
       const item = await col
         .items(d)
         .findOne({ runId, target: a.target, status: "manual" }, { session });
-      if (!item) return false;
+      if (!item) return "gone";
       const all = await loadRecords(d, demo.scenario, session);
       const slot = find(all, MARKET, a.slotId)?.data as SlotData | undefined;
       if (
         bookingOf(all, a.target).data.status !== "cancelled" ||
         slot?.status !== "free"
       )
-        return false;
+        return "taken";
       const changes = reassignChanges(all, {
         bookingId: a.target,
         slotId: a.slotId,
@@ -175,12 +176,16 @@ export async function rescueRecovery(d: Db): Promise<void> {
         },
         session,
       );
-      return true;
+      return "replaced";
     });
-    if (done) changed++;
+    if (done === "replaced") replaced++;
+    // The planned slot or booking changed before commit, so a person owns it like an unplaced booking.
+    if (done === "taken")
+      handOver.push({ target: a.target, reason: "no_slot" });
   }
 
-  for (const u of plan.unassigned) {
+  let changed = replaced;
+  for (const u of handOver) {
     // An existing exception, open or closed by its owner, is never opened again.
     if (await col.exceptions(d).findOne({ runId, target: u.target })) continue;
     const b = bookingOf(recs, u.target).data;
@@ -222,8 +227,8 @@ export async function rescueRecovery(d: Db): Promise<void> {
     runId,
     actor: RESCUER,
     action: "rescue.allocate",
-    detail: `${plan.assigned.length} replaced, ${plan.unassigned.length} handed to a person. ${money(after?.committedPence ?? 0)} of ${money(incident.budgetPence)} committed.`,
-    decision: plan.unassigned.length ? "Rescued with exceptions" : "Rescued",
+    detail: `${replaced} replaced, ${handOver.length} handed to a person. ${money(after?.committedPence ?? 0)} of ${money(incident.budgetPence)} committed.`,
+    decision: handOver.length ? "Rescued with exceptions" : "Rescued",
     operationId: null,
   });
 }

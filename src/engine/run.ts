@@ -175,6 +175,6 @@ async function runStep(
         throw new StepError(
           "The live agent is not configured. Set NEBIUS_API_KEY.",
         );
-      throw new StepError("agent is implemented in Task 21");
+      throw new StepError("The live agent is not enabled in this build.");
   }
 }

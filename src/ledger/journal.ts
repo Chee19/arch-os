@@ -5,7 +5,8 @@ import type { Split } from "@/money/math";
 
 export type JournalLine = { account: string; debit: number; credit: number };
 export type JournalEntry = {
-  key: "paid" | "refund" | "fulfilled" | "provider_paid" | "fee";
+  key:
+    "paid" | "full_refund" | "refund" | "fulfilled" | "provider_paid" | "fee";
   title: string;
   lines: JournalLine[];
   source: string;
@@ -38,6 +39,7 @@ export function buildJournal(input: {
     o?.state === "succeeded" ? o : undefined;
   const charge = good(L.charge);
   const refund = good(L.refund);
+  const fullRefund = good(L.full_refund);
   const transfer = good(L.transfer);
   const out: JournalEntry[] = [];
 
@@ -49,6 +51,17 @@ export function buildJournal(input: {
       lines: [
         dr("Stripe clearing", split.paid),
         cr("Customer deposits", split.paid),
+      ],
+    });
+  }
+  if (fullRefund) {
+    out.push({
+      key: "full_refund",
+      title: "Customer refunded in full",
+      source: sourceOf(fullRefund),
+      lines: [
+        dr("Customer deposits", fullRefund.amountPence),
+        cr("Stripe clearing", fullRefund.amountPence),
       ],
     });
   }

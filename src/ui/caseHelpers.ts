@@ -57,6 +57,16 @@ export function sumCheck(s: Split): { ok: boolean; text: string } {
   };
 }
 
+// A transfer has no Stripe status but does have reversed, so each part shows on its own.
+export function observedText(o: UiPaymentOp["observed"]): string | null {
+  if (!o) return null;
+  const parts = [
+    o.status && `Stripe says ${o.status}`,
+    o.reversed !== null && `reversed: ${o.reversed ? "yes" : "no"}`,
+  ].filter(Boolean);
+  return parts.length ? parts.join(", ") : null;
+}
+
 export const latestOf = (
   ops: UiPaymentOp[],
   kind: UiPaymentOp["kind"],

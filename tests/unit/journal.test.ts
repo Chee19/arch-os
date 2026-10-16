@@ -185,6 +185,38 @@ describe("buildJournal edge cases", () => {
     expect(keys).toEqual(["paid", "refund", "provider_paid", "fee"]);
   });
 
+  it("books a succeeded full refund after paid, and nothing for a pending one", () => {
+    const split = splitFor(30000, 30000);
+    const paid = op("charge", "succeeded", 1, 30000);
+    const entries = buildJournal({
+      split,
+      ops: [paid, op("full_refund", "succeeded", 1, 30000)],
+      fulfilment: null,
+    });
+    expect(entries.map((e) => e.key)).toEqual(["paid", "full_refund"]);
+    const full = entries[1];
+    expect(full).toMatchObject({
+      title: "Customer refunded in full",
+      source: "full_refund_id1",
+    });
+    expect(line(full, "Customer deposits")).toMatchObject({
+      debit: 30000,
+      credit: 0,
+    });
+    expect(line(full, "Stripe clearing")).toMatchObject({
+      debit: 0,
+      credit: 30000,
+    });
+    expect(isBalanced(full)).toBe(true);
+    expect(
+      buildJournal({
+        split,
+        ops: [paid, op("full_refund", "pending", 1, 30000)],
+        fulfilment: null,
+      }).map((e) => e.key),
+    ).toEqual(["paid"]);
+  });
+
   it("uses the latest attempt only", () => {
     const ops = [
       op("charge", "succeeded", 1, 30000, 470),

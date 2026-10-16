@@ -76,10 +76,6 @@ export function MessagesPanel() {
   return (
     <div className="messages">
       <section className="panel">
-        <div className="panel-head between">
-          <h2>Messages</h2>
-          <span className="mono muted">{c.messages.length} MESSAGES</span>
-        </div>
         <ol className="thread" aria-live="polite">
           {c.messages.map((m) => (
             <li key={m.seq} className={`msg ${m.from}`}>

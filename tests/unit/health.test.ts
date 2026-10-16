@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/server", () => ({ connection: async () => {} }));
 vi.mock("@/db", () => ({
@@ -11,7 +11,12 @@ vi.mock("@/money/stripe", () => ({
 
 import { GET } from "@/app/api/health/route";
 
-afterEach(() => vi.useRealTimers());
+// vitest loads .env.local, and a real key would make the probe call Nebius.
+beforeEach(() => vi.stubEnv("NEBIUS_API_KEY", ""));
+afterEach(() => {
+  vi.useRealTimers();
+  vi.unstubAllEnvs();
+});
 
 describe("health probes", () => {
   it("a probe that never resolves reads as false within the cap", async () => {

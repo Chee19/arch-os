@@ -6,6 +6,7 @@ import {
   ladderRungs,
   latestOf,
   mmss,
+  observedText,
   remaining,
   sumCheck,
 } from "@/ui/caseHelpers";
@@ -109,5 +110,36 @@ describe("latestOf", () => {
         ?.opId,
     ).toBe("charge:2");
     expect(latestOf([op("charge", 1)], "refund")).toBeNull();
+  });
+});
+
+describe("observedText", () => {
+  const observed = (
+    status: string | null,
+    reversed: boolean | null,
+  ): UiPaymentOp["observed"] => ({
+    status,
+    reversed,
+    amountRefunded: null,
+    balanceTransaction: null,
+    feePence: null,
+    checkedAt: expiresAt,
+  });
+
+  it("shows reversed: no for a transfer, which has no Stripe status", () =>
+    expect(observedText(observed(null, false))).toBe("reversed: no"));
+
+  it("shows the Stripe status alone, or both parts together", () => {
+    expect(observedText(observed("succeeded", null))).toBe(
+      "Stripe says succeeded",
+    );
+    expect(observedText(observed("succeeded", true))).toBe(
+      "Stripe says succeeded, reversed: yes",
+    );
+  });
+
+  it("shows nothing before Stripe was read or when it reported neither", () => {
+    expect(observedText(null)).toBeNull();
+    expect(observedText(observed(null, null))).toBeNull();
   });
 });

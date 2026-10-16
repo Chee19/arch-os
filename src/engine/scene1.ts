@@ -228,7 +228,13 @@ export async function recheck(
   opId: string,
   deps?: OpDeps,
 ): Promise<PaymentOp> {
-  return owned(d, await recheckOp(d, opId, deps));
+  const op = await col.payments(d).findOne({ opId });
+  // Maybe never reached Stripe: runOp reconciles, then resends with the same key (spec 6.3), so it cannot duplicate.
+  const unsent = op?.state === "requested" && op.stripeId === null;
+  return owned(
+    d,
+    unsent ? await runOp(d, opId, deps) : await recheckOp(d, opId, deps),
+  );
 }
 
 // Checking runId inside the transaction keeps a reset run's late writes out of the new run.
@@ -318,7 +324,12 @@ async function fullRefund(
   const prior = latestOps(ops).full_refund;
   if (prior) return execute(d, prior.opId, deps, prior.state === "failed");
   const { c } = ctxOf(await loadRecords(d, demo.scenario));
-  const amount = refundable(c.data.paidPence, ops);
+  // A refund made in the Stripe dashboard is not in ops, and Stripe rejects an over-refund forever.
+  const charge = await chargeFacts(d, demo.runId, CASE_ID, deps);
+  const amount = Math.min(
+    refundable(c.data.paidPence, ops),
+    charge.amount - charge.amountRefunded,
+  );
   if (amount <= 0) return null;
   const op = await insertIntent(
     d,
@@ -504,12 +515,12 @@ export async function runScripted(
   // runScript returns one result per script entry of this step, in order.
   for (const [i, r] of (await runScript(d, demo, key)).entries()) {
     if (r.ok) continue;
-    if (r.reason === "stale_run") throw new StepError(r.message);
-    if (isPolicyReason(r.reason))
-      await recordRejection(d, demo, calls[i].args, {
-        reason: r.reason,
-        message: r.message,
-      });
+    // Only a policy deny is an expected scripted outcome; anything else is a fault the presenter must see.
+    if (!isPolicyReason(r.reason)) throw new StepError(r.message);
+    await recordRejection(d, demo, calls[i].args, {
+      reason: r.reason,
+      message: r.message,
+    });
   }
   return {};
 }
@@ -771,7 +782,9 @@ export async function secureCase(
     ? ""
     : refund.state === "succeeded"
       ? ` We've refunded ${money(refund.amountPence)} (Stripe ${refund.stripeId}).`
-      : ` Your ${money(refund.amountPence)} refund is being processed.`;
+      : refund.state === "failed"
+        ? ` Your ${money(refund.amountPence)} refund did not go through. Our team will retry it.`
+        : ` Your ${money(refund.amountPence)} refund is being processed.`;
   await callTool(d, {
     runId: demo.runId,
     tool: "sendMessage",
@@ -816,33 +829,47 @@ export async function fulfilCase(d: Db, demo: DemoDoc): Promise<StepEnd> {
   return {};
 }
 
+// Every new transfer attempt moves money, so the first send and a Retry pass the same checks.
+async function settleCheck(
+  d: Db,
+  demo: DemoDoc,
+  ops: PaymentOp[],
+  deps?: OpDeps,
+) {
+  const recs = await loadRecords(d, demo.scenario);
+  const { c, booking } = ctxOf(recs);
+  const offer = offerIn(c.data, "secured");
+  const split = splitFor(c.data.paidPence, offer.pricePence);
+  const deny = revalidate("settle", {
+    now: new Date(),
+    caseData: c.data,
+    offer,
+    slot: find(recs, MARKET, offer.slotId),
+    booking: booking.data,
+    charge: await chargeFacts(d, demo.runId, CASE_ID, deps),
+    ops,
+    amount: split.transfer,
+  });
+  if (deny) await openException(d, settleException(demo, deny.reason));
+  return { deny, recs, booking, offer, split };
+}
+
 export async function settleCase(
   d: Db,
   demo: DemoDoc,
   deps?: OpDeps,
 ): Promise<StepEnd> {
-  const recs = await loadRecords(d, demo.scenario);
-  const { c, booking } = ctxOf(recs);
   const ops = await opsFor(d, demo.runId, CASE_ID);
   let transfer = latestOps(ops).transfer;
   // Revalidate only before the first intent; an existing transfer op would count against its own funding.
   if (!transfer) {
-    const offer = offerIn(c.data, "secured");
-    const split = splitFor(c.data.paidPence, offer.pricePence);
-    const deny = revalidate("settle", {
-      now: new Date(),
-      caseData: c.data,
-      offer,
-      slot: find(recs, MARKET, offer.slotId),
-      booking: booking.data,
-      charge: await chargeFacts(d, demo.runId, CASE_ID, deps),
+    const { deny, recs, booking, offer, split } = await settleCheck(
+      d,
+      demo,
       ops,
-      amount: split.transfer,
-    });
-    if (deny) {
-      await openException(d, settleException(demo, deny.reason));
-      return { status: "running" };
-    }
+      deps,
+    );
+    if (deny) return { status: "running" };
     const provider = providersOf(recs).find(
       (p) => p.data.providerId === offer.providerId,
     );
@@ -906,9 +933,16 @@ export async function exceptionAction(
   const ops = await opsFor(d, demo.runId, CASE_ID);
   const kind = ops.find((o) => o.opId === e.opId)?.kind ?? "transfer";
   const latest = latestOps(ops)[kind];
+  const again = latest?.state === "failed";
+  if (
+    again &&
+    kind === "transfer" &&
+    (await settleCheck(d, demo, ops, deps)).deny
+  )
+    return;
   // The settle exception has no op yet, so retrying it re-runs settle with fresh revalidation.
   if (!latest) await settleCase(d, demo, deps);
-  else await execute(d, latest.opId, deps, latest.state === "failed");
+  else await execute(d, latest.opId, deps, again);
   const done = latestOps(await opsFor(d, demo.runId, CASE_ID))[kind];
   if (done?.state === "succeeded")
     await closeException(

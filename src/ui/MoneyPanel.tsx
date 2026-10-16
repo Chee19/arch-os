@@ -2,7 +2,7 @@
 
 import type { UiPaymentOp } from "@/engine/state";
 import { money } from "@/lib/format";
-import { latestOf, sumCheck } from "./caseHelpers";
+import { latestOf, observedText, sumCheck } from "./caseHelpers";
 import { useDemo } from "./DemoProvider";
 import { Icon } from "./Icon";
 import { OP_KIND_LABEL, OP_STATE_LABEL, OP_STATE_TONE } from "./labels";
@@ -10,6 +10,7 @@ import { OP_KIND_LABEL, OP_STATE_LABEL, OP_STATE_TONE } from "./labels";
 function OpRow({ op }: { op: UiPaymentOp }) {
   const { state, busy, act, notify } = useDemo();
   const off = busy || Boolean(state?.demo.busy);
+  const seen = observedText(op.observed);
   const copy = (id: string) =>
     void navigator.clipboard.writeText(id).then(
       () => notify(`Copied ${id}`),
@@ -53,14 +54,7 @@ function OpRow({ op }: { op: UiPaymentOp }) {
           <i className="dot" />
           {OP_STATE_LABEL[op.state]}
         </span>
-        {op.observed?.status && (
-          <span className="minor">
-            Stripe says {op.observed.status}
-            {op.observed.reversed === null
-              ? ""
-              : `, reversed: ${op.observed.reversed ? "yes" : "no"}`}
-          </span>
-        )}
+        {seen && <span className="minor">{seen}</span>}
         {op.error && <span className="minor red">{op.error}</span>}
       </td>
       <td>
@@ -98,12 +92,6 @@ export function MoneyPanel() {
   const fee = latestOf(state.payments, "charge")?.observed?.feePence ?? null;
   return (
     <section className="panel">
-      <div className="panel-head between">
-        <h2>Money</h2>
-        <span className="mono muted">
-          {state.payments.length} PAYMENT OPS RECORDED
-        </span>
-      </div>
       <div className="table-scroll">
         <table>
           <thead>
