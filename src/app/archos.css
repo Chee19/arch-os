@@ -10,14 +10,18 @@
   padding: 11px 12px;
   border-radius: 6px;
   font-size: 12px;
-  color: #9ba7a4;
+  color: var(--soft);
   text-decoration: none;
 }
 .nav a:hover {
-  background: #1d2523;
+  background: var(--panel2);
 }
 .nav a.active {
-  color: #d8e8c9;
+  color: var(--text);
+}
+/* The indicator chip already marks the active link, so hover must not tint over it. */
+.nav a.active:hover {
+  background: transparent;
 }
 .nav a.active svg {
   color: var(--green);
@@ -29,7 +33,11 @@
   top: 0;
   height: 0;
   border-radius: 6px;
-  background: #28322a;
+  background: #ffffff;
+  /* Inset hairline, not a border, so the zero-height resting state paints nothing. */
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    var(--shadow-sm);
 }
 .heading-actions {
   display: flex;
@@ -42,15 +50,20 @@
   gap: 8px;
   padding: 12px 16px;
   margin-bottom: 16px;
-  border: 1px solid #694038;
-  background: #2a1d1a;
+  border: 1px solid var(--red-edge);
+  background: var(--red-tint);
   color: var(--red);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   font-size: 12px;
 }
 .skeleton {
-  border-radius: 8px;
-  background: linear-gradient(90deg, #171c1d 0%, #20282a 50%, #171c1d 100%);
+  border-radius: var(--radius);
+  background: linear-gradient(
+    90deg,
+    rgb(28 41 35 / 0.05) 0%,
+    rgb(28 41 35 / 0.09) 50%,
+    rgb(28 41 35 / 0.05) 100%
+  );
   background-size: 200% 100%;
   animation: shimmer 1.2s linear infinite;
 }
@@ -78,34 +91,34 @@
   grid-template-columns: repeat(auto-fill, minmax(26px, 1fr));
 }
 .record-cell.tone-idle {
-  background: #1d2523;
-  border-color: #2b3233;
+  background: rgb(255 255 255 / 0.6);
+  border-color: var(--line);
   color: var(--muted);
 }
 .record-cell.tone-scope {
-  background: #1f3532;
-  border-color: #3e6a62;
+  background: #e3f0f0;
+  border-color: #a9cfd0;
   color: var(--teal);
 }
 .record-cell.tone-changed {
-  background: #3a2a27;
-  border-color: #5a3d36;
-  color: #d9a497;
+  background: #f8e9e5;
+  border-color: #e6c3b9;
+  color: #9a4434;
 }
 .record-cell.tone-bad {
-  background: #4b2d28;
-  border-color: #694038;
-  color: #e6ab9e;
+  background: #f3d9d2;
+  border-color: #dca99c;
+  color: #8f3a2b;
 }
 .record-cell.tone-warn {
-  background: #4d3e24;
-  border-color: #775f34;
+  background: #f9edd6;
+  border-color: #e2c58f;
   color: var(--amber);
 }
 .record-cell.tone-ok {
-  background: #476335;
-  border-color: #7d9c59;
-  color: #e0f2c8;
+  background: #d6eadb;
+  border-color: #9cc4a8;
+  color: #1f5e46;
 }
 .scanline {
   position: absolute;
@@ -114,7 +127,7 @@
   left: 0;
   width: 2px;
   background: var(--red);
-  box-shadow: 0 0 14px var(--red);
+  box-shadow: 0 0 8px rgb(184 79 60 / 0.35);
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -125,8 +138,8 @@ dialog {
   color: inherit;
 }
 dialog::backdrop {
-  background: #070b0bba;
-  backdrop-filter: blur(5px);
+  background: rgb(28 41 35 / 0.18);
+  backdrop-filter: blur(6px);
 }
 dialog.dialog,
 dialog.drawer {
@@ -157,9 +170,9 @@ dialog.drawer {
 }
 .console-item {
   border: 1px solid var(--line);
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   padding: 10px 12px;
-  background: #151b1a;
+  background: rgb(255 255 255 / 0.6);
   font-size: 11px;
 }
 .console-item p {
@@ -169,14 +182,15 @@ dialog.drawer {
   word-break: break-word;
 }
 .console-item.blocked {
-  border-color: #694038;
-  background: #241a18;
+  border-color: var(--red-edge);
+  background: var(--red-tint);
 }
 .console-item.error {
-  border-color: #775f34;
+  border-color: var(--amber-edge);
 }
 .console-item.model {
-  border-color: #3e6a62;
+  border-color: var(--green-edge);
+  background: var(--green-tint);
 }
 .console-tag {
   display: inline-flex;
@@ -234,13 +248,13 @@ dialog.drawer {
 }
 .flow-lane {
   fill: none;
-  stroke: #2f3a37;
+  stroke: var(--line-strong);
   stroke-width: 1.5;
   stroke-dasharray: 4 5;
 }
 .flow-node rect {
-  fill: #151b1a;
-  stroke: #33403c;
+  fill: rgb(255 255 255 / 0.6);
+  stroke: var(--line-strong);
   stroke-width: 1;
 }
 .flow text {
@@ -249,20 +263,20 @@ dialog.drawer {
   text-anchor: middle;
 }
 .flow .flow-rail {
-  fill: #6f7d79;
+  fill: var(--muted);
   font-size: 9px;
 }
 .flow .gate {
   fill: var(--green);
 }
 .flow-dot {
-  fill: #56625f;
+  fill: rgb(28 41 35 / 0.25);
 }
 .flow-dot.tone-scope {
   fill: var(--teal);
 }
 .flow-dot.tone-changed {
-  fill: #d9a497;
+  fill: rgb(184 79 60 / 0.55);
 }
 .flow-dot.tone-bad {
   fill: var(--red);
@@ -372,9 +386,9 @@ dialog.drawer {
   gap: 8px;
   padding: 12px 16px;
   margin-bottom: 16px;
-  border: 1px solid #665036;
-  border-radius: 6px;
-  background: #29241c;
+  border: 1px solid var(--amber-edge);
+  border-radius: var(--radius-sm);
+  background: var(--amber-tint);
   color: var(--amber);
   font-size: 12px;
 }
@@ -436,17 +450,18 @@ dialog.drawer {
 .provider-card {
   padding: 14px;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #151b1a;
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 0.6);
+  box-shadow: var(--shadow-sm);
 }
 .provider-card.held,
 .provider-card.secured {
-  border-color: #526247;
-  background: #1b2419;
+  border-color: var(--green-edge);
+  background: var(--green-tint);
 }
 .provider-card.rejected {
-  border-color: #694038;
-  background: #241a18;
+  border-color: var(--red-edge);
+  background: var(--red-tint);
 }
 .provider-why {
   margin-top: 8px;
@@ -496,22 +511,29 @@ dialog.drawer {
   max-width: 85%;
   padding: 10px 12px;
   border: 1px solid var(--line);
-  border-radius: 8px;
-  background: #151b1a;
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 0.6);
+  box-shadow: var(--shadow-sm);
   font-size: 12px;
   line-height: 1.6;
 }
+.msg.agent {
+  border-color: var(--green-edge);
+  background: var(--green-tint);
+  box-shadow: none;
+}
 .msg.customer {
   justify-self: end;
-  border-color: #3e6a62;
-  background: #182422;
+  border-color: var(--line-strong);
+  background: rgb(255 255 255 / 0.85);
 }
 .msg.provider {
-  border-color: #4b4434;
+  border-color: var(--line-strong);
 }
 .msg.system {
   justify-self: center;
   background: transparent;
+  box-shadow: none;
   color: var(--muted);
 }
 .msg-meta {
@@ -526,17 +548,19 @@ dialog.drawer {
   width: 12px;
   height: 12px;
 }
+/* Sits inside the green agent bubble, so a white chip with a green edge reads as the offer card. */
 .proposal-card {
   padding: 12px;
-  border: 1px solid #526247;
-  border-radius: 6px;
-  background: #1b2419;
+  border: 1px solid var(--green-edge);
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 0.75);
+  box-shadow: var(--shadow-sm);
 }
 .proposal-card p {
   margin-top: 6px;
 }
 .sim-customer {
-  border-color: #3e6a62;
+  border-color: var(--teal-edge);
 }
 .sim-customer .flex {
   margin-top: 12px;
@@ -589,13 +613,13 @@ dialog.drawer {
   margin: 14px 18px;
   padding: 12px;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #151b1a;
+  border-radius: var(--radius-sm);
+  background: var(--panel2);
 }
 .quote {
   margin: 10px 0 0;
   padding: 8px 12px;
-  border-left: 2px solid #688455;
+  border-left: 2px solid var(--green-edge);
   color: var(--soft);
   font-size: 12px;
 }
@@ -605,6 +629,10 @@ dialog.drawer {
 }
 .raw {
   margin: 8px 0 0;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: rgb(28 41 35 / 0.035);
   color: var(--soft);
   font: 10px/1.6 var(--mono);
   white-space: pre-wrap;
@@ -663,7 +691,7 @@ dialog.drawer {
 }
 .exception-card.closed {
   border-color: var(--line);
-  background: #151b1a;
+  background: var(--panel2);
   opacity: 0.75;
 }
 .exception-actions {

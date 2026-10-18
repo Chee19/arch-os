@@ -97,7 +97,7 @@ export function Shell({ children }: { children: ReactNode }) {
             ))}
           </div>
           <span>
-            Arch<span style={{ fontWeight: 400, color: "#a6b69a" }}>OS</span>
+            Arch<span style={{ color: "var(--green)" }}>OS</span>
           </span>
         </Link>
         <div className="workspace">
@@ -106,17 +106,17 @@ export function Shell({ children }: { children: ReactNode }) {
               <path
                 d="M3.5 11 12 3.8l8.5 7.2v9.2h-17Z"
                 fill="none"
-                stroke="#86bcb0"
+                style={{ stroke: "var(--teal)" }}
                 strokeWidth="1.7"
                 strokeLinejoin="round"
               />
               <path
                 d="M12 19.5v-8"
-                stroke="#c4e6a0"
+                style={{ stroke: "var(--green)" }}
                 strokeWidth="1.3"
                 strokeLinecap="round"
               />
-              <g fill="#b8a6e8">
+              <g style={{ fill: "var(--violet)" }}>
                 <circle cx="12" cy="10" r="1.6" />
                 <circle cx="10.2" cy="13" r="1.5" />
                 <circle cx="13.8" cy="14.6" r="1.5" />
