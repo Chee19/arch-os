@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28" width="88" height="88" role="img" aria-label="ArchOS">
+  <style>
+    .tile { fill: #1c2923; }
+    .cell { fill: #5fc79c; }
+    @media (prefers-color-scheme: dark) {
+      .tile { fill: #f4f6f1; }
+      .cell { fill: #23785a; }
+    }
+  </style>
+  <rect class="tile" width="28" height="28" rx="8"/>
+  <rect class="cell" x="5.2" y="5.2" width="4.4" height="4.4" rx="0.7"/>
+  <rect class="cell" x="11.8" y="5.2" width="4.4" height="4.4" rx="0.7"/>
+  <rect class="cell" x="18.4" y="5.2" width="4.4" height="4.4" rx="0.7" opacity="0.25"/>
+  <rect class="cell" x="5.2" y="11.8" width="4.4" height="4.4" rx="0.7"/>
+  <rect class="cell" x="11.8" y="11.8" width="4.4" height="4.4" rx="0.7"/>
+  <rect class="cell" x="18.4" y="11.8" width="4.4" height="4.4" rx="0.7" opacity="0.55"/>
+  <rect class="cell" x="5.2" y="18.4" width="4.4" height="4.4" rx="0.7"/>
+  <rect class="cell" x="11.8" y="18.4" width="4.4" height="4.4" rx="0.7" opacity="0.55"/>
+  <rect class="cell" x="18.4" y="18.4" width="4.4" height="4.4" rx="0.7" opacity="0.25"/>
+</svg>

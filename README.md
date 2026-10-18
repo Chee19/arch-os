@@ -74,8 +74,21 @@ flowchart TB
     rogue(["Agent cancels<br/>30, not 3"]) --> detect["Scope check<br/>finds 27"] --> contain["Agent<br/>contained"] --> approve["Person approves<br/>the plan"] --> restore["Restore<br/>and rebook"]
   end
 
+  rescue ~~~ recover
   rescue --> verify(["Verify against Stripe and the records,<br/>then settle or hand to a named owner"])
   recover --> verify
+
+  classDef trigger fill:#f6eedf,stroke:#956018,color:#1c2923
+  classDef step fill:#e7f2ec,stroke:#23785a,color:#1c2923
+  classDef stop fill:#f7e7e3,stroke:#b84f3c,color:#1c2923
+  classDef done fill:#23785a,stroke:#1b6349,color:#ffffff
+  class fail,rogue trigger
+  class understand,search,gate,consent,money,detect,contain,approve,restore step
+  class denied stop
+  class verify done
+  style rescue fill:#f4f6f1,stroke:#c9d3cd,color:#1c2923
+  style recover fill:#f4f6f1,stroke:#c9d3cd,color:#1c2923
+  linkStyle default stroke:#687570
 ```
 
 The UI holds no business state. Each **Next** posts one action. The engine claims that step with a lock in MongoDB so a double click runs it once, every tool call passes through the gateway, and the response is the full new state.
@@ -110,6 +123,7 @@ _"The provider cancelled. Save the booking."_ QuickMove's van breaks down on the
 A booking only counts as saved once it reaches the top of the ladder: **Offered, Secured, Fulfilled, Settled**. The new provider is never paid before fulfilment.
 
 ```mermaid
+%%{init: {"theme": "base", "themeVariables": {"pie1": "#23785a", "pie2": "#2a7480", "pie3": "#956018", "pieSectionTextColor": "#ffffff", "pieTitleTextColor": "#8b949e", "pieLegendTextColor": "#8b949e", "pieStrokeColor": "#ffffff", "pieOuterStrokeColor": "#8b949e", "pieOpacity": "1"}}}%%
 pie showData
   title Where Maya's £300 goes
   "ClearHome, the replacement provider" : 224
@@ -138,6 +152,7 @@ flowchart LR
   class approved,restored,rebooked good
   class taken,owned warn
   class all,rogue bad
+  linkStyle default stroke:#687570
 ```
 
 Along the way, ArchOS:
