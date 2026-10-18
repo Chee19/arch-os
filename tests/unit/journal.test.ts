@@ -90,9 +90,9 @@ describe("buildJournal scripted case", () => {
     expect(line(by.fulfilled, "Provider payable")).toMatchObject({
       credit: 22400,
     });
-    expect(
-      line(by.fulfilled, "Gross commission (simulated fulfilment, unsettled)"),
-    ).toMatchObject({ credit: 5600 });
+    expect(line(by.fulfilled, "Gross commission (unsettled)")).toMatchObject({
+      credit: 5600,
+    });
     expect(line(by.fulfilled, "Subsidy expense")).toBeUndefined();
     expect(line(by.provider_paid, "Provider payable")).toMatchObject({
       debit: 22400,
@@ -108,7 +108,7 @@ describe("buildJournal scripted case", () => {
     expect(entries.map((e) => e.source)).toEqual([
       "charge_id1",
       "refund_id1",
-      "fulfilment event (simulated)",
+      "fulfilment event",
       "transfer_id1",
       "charge_id1",
     ]);
@@ -148,9 +148,9 @@ describe("buildJournal edge cases", () => {
     });
     expect(line(f, "Customer deposits")).toMatchObject({ debit: 30000 });
     expect(line(f, "Provider payable")).toMatchObject({ credit: 24800 });
-    expect(
-      line(f, "Gross commission (simulated fulfilment, unsettled)"),
-    ).toMatchObject({ credit: 6200 });
+    expect(line(f, "Gross commission (unsettled)")).toMatchObject({
+      credit: 6200,
+    });
   });
 
   it("has no entry for a pending op", () => {

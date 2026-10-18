@@ -476,7 +476,7 @@ export function stepResult(key: StepKey, x: ResultInput): string {
       return c ? `${money(c.paidPence)} booking at risk` : "";
     case "understand":
       return c?.constraints
-        ? `Done by ${when(c.constraints.doneBy)}, max ${money(c.constraints.maxPricePence)} (${c.extraction?.source ?? "scripted"})`
+        ? `Done by ${when(c.constraints.doneBy)}, max ${money(c.constraints.maxPricePence)} (${c.extraction?.source === "live" ? "live" : "fallback"})`
         : "";
     case "search":
       return c
@@ -509,11 +509,11 @@ export function stepResult(key: StepKey, x: ResultInput): string {
           : "")
       );
     case "fulfil":
-      return c?.fulfilment ? "Fulfilment recorded (simulated)" : "";
+      return c?.fulfilment ? "Fulfilment recorded" : "";
     case "settle":
       return opLine("Transfer", latestOp(x.payments, "transfer")) || exception;
     case "ledger":
-      return `${x.journal.length} journal entries, ${x.journal.every(isBalanced) ? "all balanced" : "not balanced"}, not posted`;
+      return `${x.journal.length} journal entries, ${x.journal.every(isBalanced) ? "all balanced" : "not balanced"}, ready to post`;
     case "agent":
       return c?.proposal
         ? `Proposed ${c.proposal.providerName} at ${money(c.proposal.split.price)}`

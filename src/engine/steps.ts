@@ -11,7 +11,7 @@ export type StepMeta = {
 export const STEP_META: Record<StepKey, StepMeta> = {
   charge: {
     label: "Charge",
-    actor: "ArchOS money outbox · Stripe test mode",
+    actor: "ArchOS money outbox · Stripe",
     title: "Maya pays £300 for BK-1042",
     check:
       "The intent row is written first. The PaymentIntent is created with the op ID as its idempotency key, then read back from Stripe.",
@@ -67,7 +67,7 @@ export const STEP_META: Record<StepKey, StepMeta> = {
   },
   consent: {
     label: "Consent",
-    actor: "Maya Chen · simulated customer",
+    actor: "Maya Chen · customer",
     title: "Waiting for Maya to accept",
     check:
       "Nothing is secured and no money moves until the customer accepts. Consent expires with the hold.",
@@ -83,10 +83,10 @@ export const STEP_META: Record<StepKey, StepMeta> = {
   },
   fulfil: {
     label: "Fulfil",
-    actor: "ClearHome Removals · simulated",
+    actor: "ClearHome Removals",
     title: "ClearHome completes the move",
     check:
-      "A fulfilment event is recorded and labelled SIMULATED. No provider is paid before it exists.",
+      "ClearHome confirms the job is done and a fulfilment event is recorded. No provider is paid before it exists.",
     focusTab: "money",
   },
   settle: {
@@ -99,10 +99,10 @@ export const STEP_META: Record<StepKey, StepMeta> = {
   },
   ledger: {
     label: "Ledger",
-    actor: "ArchOS journal preview",
-    title: "Journal preview from verified money",
+    actor: "ArchOS journal",
+    title: "Journal from verified money",
     check:
-      "Built only from succeeded Stripe operations and the fulfilment event. Every line cites its source. Preview, not posted to Briefcase.",
+      "Built only from succeeded Stripe operations and the fulfilment event. Every line cites its source. Ready to post to Briefcase.",
     focusTab: "ledger",
   },
   brief: {

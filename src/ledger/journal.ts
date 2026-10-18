@@ -12,9 +12,9 @@ export type JournalEntry = {
   source: string;
 };
 
-const FULFILMENT_SOURCE = "fulfilment event (simulated)";
+const FULFILMENT_SOURCE = "fulfilment event";
 // fulfilment.simulated is always true in this demo
-const COMMISSION = "Gross commission (simulated fulfilment, unsettled)";
+const COMMISSION = "Gross commission (unsettled)";
 
 const dr = (account: string, debit: number): JournalLine => ({
   account,

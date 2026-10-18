@@ -86,7 +86,7 @@ function cancelChanges(recs: Rec[], ids: string[]): Change[] {
 export const bulkCancel: Scenario = {
   id: "bulk-cancel",
   name: "30 cancelled instead of 3",
-  short: "Scene 2",
+  short: "Agent incident",
   agent: {
     id: "agt_ops_01",
     name: "Ops Agent",

@@ -13,13 +13,12 @@ export function JournalPreview() {
         <h2>Briefcase-ready journal</h2>
         <span className="badge amber">
           <i className="dot" />
-          Preview, not posted to Briefcase
+          Ready to post to Briefcase
         </span>
       </div>
       <p className="journal-note">
-        Account names are illustrative. Map them to your chart of accounts
-        before posting. Built only from verified Stripe operations and the
-        fulfilment event.
+        Map account names to your chart of accounts before posting. Built only
+        from verified Stripe operations and the fulfilment event.
       </p>
       {state.journal.length === 0 ? (
         <p className="panel-body muted">

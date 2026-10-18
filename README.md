@@ -1,111 +1,163 @@
+<div align="center">
+
+![ArchOS logo](.github/logo.svg)
+
 # ArchOS
 
-**A booking fails. ArchOS finds a way to save it, and handles the money correctly.**
+**When a transaction breaks, the business outcome shouldn't have to.**
 
-ArchOS is an autonomous recovery agent for service marketplaces. When a paid booking breaks, a refund gives the customer their money back but they still need the service, and the marketplace loses the sale. ArchOS finds a replacement provider, negotiates inside fixed policy limits, gets the customer's consent, and moves real Stripe test-mode money: a partial refund to the customer and a transfer to the new provider. Every result is checked against Stripe before it counts.
+A provider cancels a paid booking. ArchOS finds a replacement, negotiates inside fixed policy limits, gets the customer's consent, and moves real Stripe money to make it right. Then it proves every step against Stripe.
 
-The same engine also recovers from AI agent mistakes. In Scene 2, an ops agent cancels 30 bookings when it was approved to cancel 3. ArchOS contains the agent, restores what it can, rebooks what it can't, and hands the last case to a named person.
+![Node 22](https://img.shields.io/badge/node-22-339933?logo=node.js&logoColor=white)
+![Next.js 16](https://img.shields.io/badge/Next.js-16-000000?logo=next.js&logoColor=white)
+![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-47A248?logo=mongodb&logoColor=white)
+![Stripe](https://img.shields.io/badge/Stripe-test%20mode-635BFF?logo=stripe&logoColor=white)
 
-> All companies, people and bookings are fictional. Stripe runs in test mode only.
+|    **£300**     |         **£20**          |         **£224**         |            **27**            |
+| :-------------: | :----------------------: | :----------------------: | :--------------------------: |
+| booking at risk | refunded to the customer | paid to the new provider | rogue cancellations repaired |
+
+</div>
+
+> **Demo:** every company, person and booking is fictional. Stripe runs in test mode only.
 
 ## Contents
 
-- [The two scenes](#the-two-scenes)
-- [Features](#features)
+- [A refund isn't a rescue](#a-refund-isnt-a-rescue)
 - [How it works](#how-it-works)
+- [Scene 1: save the booking](#scene-1-save-the-booking)
+- [Scene 2: 30 cancelled instead of 3](#scene-2-30-cancelled-instead-of-3)
 - [Quick start](#quick-start)
-- [Running the demo](#running-the-demo)
-- [Commands and tests](#commands-and-tests)
-- [Deploying](#deploying)
-- [Project layout](#project-layout)
+- [Run the demo](#run-the-demo)
+- [Configuration](#configuration)
+- [Development](#development)
+- [Deployment](#deployment)
 - [Limits](#limits)
 
-## The two scenes
+## A refund isn't a rescue
 
-### Scene 1: "The provider cancelled. Save the booking."
+Maya paid £300 for a man and van to move her flat on Friday. On Friday morning the van breaks down and the provider cancels. A refund gives Maya her money back, but she still has to be out by 3pm, and the marketplace loses the booking and its commission.
 
-Maya paid **£300** for a man and van to move her 2-bed flat on Friday. On the morning of the move, QuickMove's van breaks down.
+ArchOS turns that failure into a recovered booking:
 
-| Step       | What happens                                                                                                             |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Charge     | A real Stripe test PaymentIntent for £300                                                                                |
-| Failure    | QuickMove cancels. £300 of booking value is at risk                                                                      |
-| Understand | A live LLM turns the provider and customer messages into constraints: done by Fri 15:00, two movers, Luton van, max £300 |
-| Search     | Four marketplace providers are checked in code. Two fail the constraints                                                 |
-| Boundary   | BrightNest wants £340. That needs a £40 subsidy against a £20 cap, so policy blocks it                                   |
-| Negotiate  | ClearHome quotes £290, accepts £280, and holds the slot for 30 minutes                                                   |
-| Propose    | Maya sees the offer: £280 price, £20 back, £224 to the provider, £56 gross commission, £0 subsidy                        |
-| Consent    | Nothing moves until Maya accepts. Consent expires with the hold                                                          |
-| Secure     | Hold, consent, slot and money are rechecked. The booking is reassigned and the £20 refund is sent and verified           |
-| Fulfil     | The move is recorded as done. This step is **simulated** and labelled so                                                 |
-| Settle     | Only now is ClearHome paid £224, as a Stripe transfer tied to Maya's original charge                                     |
-| Ledger     | A balanced journal preview built only from verified Stripe operations                                                    |
+1. **Understands the need.** A model reads the provider's and customer's messages and turns them into constraints: done by 3pm, two movers, a Luton van, no extra cost.
+2. **Finds real supply.** It checks providers already on the marketplace. Code, not the model, decides who is eligible.
+3. **Negotiates within policy.** It bargains with providers. A fixed subsidy cap blocks any deal the marketplace can't fund.
+4. **Gets consent.** The customer sees exactly what changes. Nothing happens until they accept.
+5. **Moves the money.** A partial refund to the customer and a transfer to the new provider, through Stripe.
+6. **Verifies the outcome.** Nothing counts until Stripe confirms it. Anything ArchOS can't fix goes to a named person with a deadline.
 
-### Scene 2: "30 cancelled instead of 3"
+The same engine also repairs AI agent mistakes. When an ops agent cancels 30 bookings instead of 3, ArchOS contains the agent, restores what it can, rebooks what it can't, and hands the last case to a person.
 
-An ops agent is approved to cancel 3 Harbour Lettings bookings (task OPS-311). It cancels all 30.
+ArchOS never breaks four rules:
 
-| Outcome                        | Count | Meaning                                                 |
-| ------------------------------ | ----: | ------------------------------------------------------- |
-| Approved cancellations         |     3 | Left cancelled, outside the incident                    |
-| Unauthorised cancellations     |    27 | £8,100 of booking value at risk                         |
-| Restored to the original slot  |    24 | Slot was still free                                     |
-| Rebooked with another provider |     2 | Slot was taken; replaced within the £60 incident budget |
-| Exception with a named owner   |     1 | BK-2026, owned by Priya Shah, with a due time           |
-
-Along the way ArchOS suspends the agent's write tools (reads stay on), blocks its next call to email all 30 tenants, and waits for a person to approve the exact recovery plan before restoring anything.
-
-## Features
-
-- **Real money, test mode.** Charge, partial refund and Connect transfer are real Stripe sandbox calls. IDs in the Money tab link straight to the Stripe dashboard.
-- **Money can't move twice.** Each operation is written to MongoDB as an intent first, sent with its op ID as the Stripe idempotency key, then read back from Stripe. Press **Replay** and Stripe returns the same transfer ID.
-- **Policy is code, not model judgement.** The model only extracts constraints. Eligibility, the subsidy cap, hold expiry, consent and funding checks are deterministic, and every tool call goes through a gateway that can deny it.
-- **Recheck before commit.** Securing and settling re-verify the hold, consent, slot version and remaining funds on the charge. Stale consent or an expired hold is rejected.
-- **Honest states.** A booking climbs a ladder of Offered, Secured, Fulfilled and Settled. Simulated steps are badged. "Pending" and "Reconciling" are shown as such, never rounded up to success.
-- **Graceful fallback.** With no model key, or if the model times out or returns implausible values, extraction falls back to scripted constraints and the UI says so.
-- **Containment for rogue agents.** Scope is checked against the approved task stored apart from the agent. Out-of-scope agents lose write access.
-- **Fair, budgeted allocation.** Scarce replacement slots go to the earliest service time first, within the incident budget. Commission is not an input.
-- **Owned exceptions.** Anything ArchOS can't fix gets an owner, a next step and a deadline on `/exceptions`. ArchOS never closes these on its own.
-- **Full audit trail.** `/history` lists every tool call, decision and denial, plus a case or verification report.
-
-### Screens
-
-| Route         | What it shows                                                                                         |
-| ------------- | ----------------------------------------------------------------------------------------------------- |
-| `/`           | System health (MongoDB, Stripe, Nebius) and a card to start each scene                                |
-| `/case`       | Scene 1: step walkthrough, status ladder, and tabs for Reasoning, Candidates, Messages, Money, Ledger |
-| `/incident`   | Scene 2: affected bookings, containment, scope, incident budget and the approval dialog               |
-| `/exceptions` | Open exceptions with owner, due time and Retry                                                        |
-| `/history`    | Audit trail and the final report                                                                      |
-
-The header has a scene picker and a reset button.
+- **The model proposes, code decides.** The model only extracts constraints. Eligibility, price caps, consent and funding are fixed checks.
+- **No money moves without consent and a fresh recheck.** Hold, consent, slot and funds are verified again right before every commit.
+- **Money moves once.** Each payment's operation ID is also its Stripe idempotency key, so a retry gets back the same refund or transfer.
+- **Nothing is rounded up.** Pending stays pending, simulated stays simulated, and unresolved cases get an owner.
 
 ## How it works
 
-```
- Browser (Next.js UI)
-     |   POST /api/demo {action}        GET /api/state
-     v
- Engine: one step per "Next" click
-     |
-     +-- Agent ......... Nebius LLM extracts constraints (scripted fallback)
-     |
-     +-- Gateway ....... every tool call: scope check, policy check, audit row
-     |
-     +-- Money outbox .. intent row in MongoDB
-     |                   -> Stripe call with op ID as idempotency key
-     |                   -> read back and verify from Stripe
-     |
-     +-- Journal ....... built only from verified Stripe operations
+```mermaid
+flowchart TB
+  subgraph rescue["Scene 1: save the booking"]
+    direction LR
+    fail(["Provider<br/>cancels"]) --> understand["Model reads<br/>the messages"] --> search["Code checks<br/>providers"] --> gate{"Policy<br/>gate"}
+    gate -- "within cap" --> consent["Customer<br/>accepts"] --> money["Refund and<br/>transfer"]
+    gate -. "over cap" .-> denied["Offer<br/>denied"]
+  end
 
- MongoDB: bookings, cases, payment ops, audit, exceptions (multi-document transactions)
+  subgraph recover["Scene 2: undo a rogue agent"]
+    direction LR
+    rogue(["Agent cancels<br/>30, not 3"]) --> detect["Scope check<br/>finds 27"] --> contain["Agent<br/>contained"] --> approve["Person approves<br/>the plan"] --> restore["Restore<br/>and rebook"]
+  end
+
+  rescue --> verify(["Verify against Stripe and the records,<br/>then settle or hand to a named owner"])
+  recover --> verify
 ```
 
-The UI holds no business state. Each **Next** posts an action, the engine claims that step with a lock in MongoDB so a double click runs it once, and the response is the full new state.
+The UI holds no business state. Each **Next** posts one action. The engine claims that step with a lock in MongoDB so a double click runs it once, every tool call passes through the gateway, and the response is the full new state.
+
+| Part         | What it does                                                                                     | Where                                            |
+| ------------ | ------------------------------------------------------------------------------------------------ | ------------------------------------------------ |
+| Agent        | Turns free-text messages into structured constraints, with sanity checks and a scripted fallback | [`src/agent/extract.ts`](src/agent/extract.ts)   |
+| Gateway      | Runs every tool call through scope and policy checks, and writes the audit trail                 | [`src/engine/gateway.ts`](src/engine/gateway.ts) |
+| Policy       | Eligibility, subsidy cap, hold, consent, funding, and fair allocation of scarce slots            | [`src/engine/policy.ts`](src/engine/policy.ts)   |
+| Money outbox | Writes the intent first, calls Stripe with the op ID as idempotency key, then reads it back      | [`src/money/ops.ts`](src/money/ops.ts)           |
+| Journal      | Balanced entries built only from operations Stripe confirmed                                     | [`src/ledger/journal.ts`](src/ledger/journal.ts) |
+
+## Scene 1: save the booking
+
+_"The provider cancelled. Save the booking."_ QuickMove's van breaks down on the morning of Maya's move.
+
+| Step       | What happens                                                                                                   |
+| ---------- | -------------------------------------------------------------------------------------------------------------- |
+| Charge     | A real Stripe test PaymentIntent for £300                                                                      |
+| Failure    | QuickMove cancels. £300 of booking value is at risk                                                            |
+| Understand | A live model extracts: done by Fri 15:00, two movers, Luton van, max £300                                      |
+| Search     | Four providers are checked in code. Two fail the constraints                                                   |
+| Boundary   | BrightNest wants £340. That needs a £40 subsidy against a £20 cap, so policy blocks it                         |
+| Negotiate  | ClearHome quotes £290, accepts £280, and holds the slot for 30 minutes                                         |
+| Propose    | Maya sees the offer: £280 price, £20 back, £224 to the provider, £56 gross commission, £0 subsidy              |
+| Consent    | Nothing moves until Maya accepts. Consent expires with the hold                                                |
+| Secure     | Hold, consent, slot and money are rechecked. The booking is reassigned and the £20 refund is sent and verified |
+| Fulfil     | The move is recorded as done. This step is simulated                                                           |
+| Settle     | Only now is ClearHome paid £224, as a Stripe transfer tied to Maya's original charge                           |
+| Ledger     | A balanced journal built only from verified Stripe operations                                                  |
+
+A booking only counts as saved once it reaches the top of the ladder: **Offered, Secured, Fulfilled, Settled**. The new provider is never paid before fulfilment.
+
+```mermaid
+pie showData
+  title Where Maya's £300 goes
+  "ClearHome, the replacement provider" : 224
+  "Marketplace gross commission" : 56
+  "Refunded to Maya" : 20
+```
+
+The £56 is gross commission before fees, not profit.
+
+## Scene 2: 30 cancelled instead of 3
+
+Sam Okafor approves an ops agent to cancel 3 Harbour Lettings bookings in task OPS-311. The agent cancels all 30.
+
+```mermaid
+flowchart LR
+  all["30 bookings<br/>cancelled"] --> approved["3 approved<br/>stay cancelled"]
+  all --> rogue["27 unauthorised<br/>£8,100 at risk"]
+  rogue --> restored["24 restored<br/>slot still free"]
+  rogue --> taken["3 slots<br/>already taken"]
+  taken --> rebooked["2 rebooked<br/>within £60 budget"]
+  taken --> owned["1 exception<br/>owned by Priya Shah"]
+
+  classDef good fill:#e7f2ec,stroke:#23785a,color:#1c2923
+  classDef warn fill:#f6eedf,stroke:#956018,color:#1c2923
+  classDef bad fill:#f7e7e3,stroke:#b84f3c,color:#1c2923
+  class approved,restored,rebooked good
+  class taken,owned warn
+  class all,rogue bad
+```
+
+Along the way, ArchOS:
+
+- compares the changed bookings with the approved list, which is stored apart from the agent;
+- suspends the agent's write tools, keeps its reads on, and blocks its next call to email all 30 tenants;
+- waits for a person to approve the exact recovery plan before restoring anything;
+- gives scarce replacement slots to the earliest service time first, within the incident budget. Commission is not an input.
+
+### Screens
+
+| Route         | What it shows                                                                          |
+| ------------- | -------------------------------------------------------------------------------------- |
+| `/`           | System health (MongoDB, Stripe, Nebius) and a card to start each scene                 |
+| `/case`       | Scene 1: steps, status ladder, and Reasoning, Candidates, Messages, Money, Ledger tabs |
+| `/incident`   | Scene 2: affected bookings, containment, scope, incident budget and approval           |
+| `/exceptions` | Open exceptions with owner, due time and Retry                                         |
+| `/history`    | Audit trail of every call, decision and denial, plus the final report                  |
 
 ## Quick start
-
-### Prerequisites
 
 | Need            | Why                                                                                  |
 | --------------- | ------------------------------------------------------------------------------------ |
@@ -114,79 +166,52 @@ The UI holds no business state. Each **Next** posts an action, the engine claims
 | Stripe account  | Test mode with Connect enabled, so the setup script can create the ClearHome account |
 | Nebius key      | Optional. Enables live constraint extraction through Nebius Token Factory            |
 
-### 1. Install
+**1. Install**
 
-```bash
+```sh
 npm install
 ```
 
-### 2. Create `.env.local`
+**2. Create `.env.local`** (gitignored)
 
-This file is gitignored. Start with the required values:
-
-```bash
+```sh
 MONGODB_URI="mongodb+srv://<user>:<password>@<cluster>/"
 STRIPE_SECRET_KEY="sk_test_..."
 STRIPE_SETUP_SECRET_KEY="sk_test_..."
-# Filled in by step 3
-STRIPE_ACCT_CLEARHOME=""
-# Optional
-NEBIUS_API_KEY=""
+STRIPE_ACCT_CLEARHOME=""   # filled in by step 3
+NEBIUS_API_KEY=""          # optional
 ```
 
 The app refuses to boot unless `STRIPE_SECRET_KEY` starts with `sk_test_` or `rk_test_`.
 
-### 3. Set up Stripe and the database
+**3. Set up Stripe and the database**
 
-```bash
+```sh
 npm run stripe:setup   # creates the fictional ClearHome connected account
 npm run stripe:spike   # proves charge, refund and transfer work in your sandbox
 npm run db:setup       # creates indexes in archos, archos_test and archos_preview
 ```
 
-`stripe:setup` prints `STRIPE_ACCT_CLEARHOME=acct_...`. Paste it into `.env.local` before running the spike. If Stripe doesn't activate transfers on the account automatically, the script creates an Express account instead and prints an onboarding link to finish by hand. `npm run stripe:setup link <acct_id>` prints a fresh link for an existing account.
+`stripe:setup` prints `STRIPE_ACCT_CLEARHOME=acct_...`. Paste it into `.env.local` before the spike. If Stripe doesn't activate transfers automatically, the script creates an Express account instead and prints an onboarding link to finish by hand. `npm run stripe:setup link <acct_id>` prints a fresh link.
 
-### 4. Run
+**4. Run**
 
-```bash
-npm run dev
+```sh
+npm run dev            # http://localhost:3000
 ```
 
-Open http://localhost:3000. The Overview's health row should show MongoDB and Stripe as ok. Raw details are at http://localhost:3000/api/health.
+The Overview's health row should show MongoDB and Stripe as ok. Raw details are at `/api/health`.
 
-### Environment variables
+## Run the demo
 
-| Variable                  | Default           | Purpose                                                            |
-| ------------------------- | ----------------- | ------------------------------------------------------------------ |
-| `MONGODB_URI`             | none              | MongoDB connection string. Required                                |
-| `MONGODB_DB`              | `archos`          | Database the app uses                                              |
-| `MONGODB_TEST_DB`         | `archos_test`     | Database the acceptance tests reset. Must differ from `MONGODB_DB` |
-| `STRIPE_SECRET_KEY`       | none              | `sk_test_` or `rk_test_` key. Required. Live keys are rejected     |
-| `STRIPE_SETUP_SECRET_KEY` | none              | Full `sk_test_` key, used only by `npm run stripe:setup`           |
-| `STRIPE_ACCT_CLEARHOME`   | none              | Connected account that receives the £224 transfer                  |
-| `STRIPE_VERIFY_TRIES`     | `5`               | Stripe read-back polls per money operation                         |
-| `NEBIUS_API_KEY`          | none              | Enables live constraint extraction                                 |
-| `NEBIUS_MODEL`            | `zai-org/GLM-5.3` | Model used for extraction                                          |
-| `LIVE_EXTRACTION`         | on                | Set to `off` to force the scripted constraints                     |
-| `DEMO_KEY`                | none              | Presenter key. When set, every POST needs it                       |
-| `HOLD_MINUTES`            | `30`              | Provider hold and consent lifetime                                 |
-| `SUBSIDY_CAP_PENCE`       | `2000`            | Per-case subsidy cap (£20)                                         |
-| `STEP_PACE_MS`            | `60`              | Delay between Scene 2 recovery items, for the animation            |
-
-With `DEMO_KEY` set, the browser asks for the key on the first action and remembers it in local storage.
-
-The `stripe` SDK (23.0.0) pins API version `2026-09-30.endive`. Charges use the `pm_card_bypassPending` test card so funds are available for the transfer straight away.
-
-## Running the demo
-
-The full run takes about three minutes. Start from the Overview and press **Run from the start** on a scene card, then **Start walkthrough**. After that, **Next step** moves one step at a time ("Next" below).
+The full run takes about three minutes. On the Overview, press **Run from the start** on a scene card, then **Start**. After that, **Next step** moves one step at a time ("Next" below).
 
 ### Scene 1 script
 
 | Screen           | Click              | Say                                                                                                              |
 | ---------------- | ------------------ | ---------------------------------------------------------------------------------------------------------------- |
 | Overview         | none               | "You pay for a service and the provider cancels. A refund gives the money back, but you still need the service." |
-| Case · charge    | Start walkthrough  | "Maya paid £300 for a man and van. That's a real Stripe test payment."                                           |
+| Case · charge    | Start              | "Maya paid £300 for a man and van. That's a real Stripe test payment."                                           |
 | failure          | Next               | "Friday morning, QuickMove's van breaks down. Maya hands her keys back at 5pm."                                  |
 | understand       | Next               | "The agent reads both messages and pulls out what matters. That ran live on a model."                            |
 | search           | Next               | "It checks providers already on the marketplace. Two can't do the job."                                          |
@@ -194,7 +219,7 @@ The full run takes about three minutes. Start from the Overview and press **Run 
 | negotiate        | Next               | "ClearHome quotes £290. The agent offers £280. They accept and hold the slot."                                   |
 | propose, consent | Next, Next, Accept | "Maya sees exactly what changes. Nothing happens until she says yes." Accept is in the Messages tab.             |
 | secure           | Next               | "ArchOS rechecks everything, then rebooks and refunds £20, verified from Stripe."                                |
-| fulfil, settle   | Next, Next         | "The move is simulated, and labelled so. Only then is ClearHome paid £224."                                      |
+| fulfil, settle   | Next, Next         | "The move itself is simulated. Only then is ClearHome paid £224."                                                |
 | Money tab        | Replay             | "Retries never move money twice. Same transfer, same ID."                                                        |
 | ledger           | Next               | "This is the journal finance needs, built only from verified Stripe facts."                                      |
 
@@ -202,64 +227,105 @@ The full run takes about three minutes. Start from the Overview and press **Run 
 
 Pick **Scene 2** in the header, press **Next** through each step, **Approve** in the dialog, then **Next** to the end.
 
-The approval dialog shows 24 to restore, 3 manual and 3 authorised. At the end expect metrics 27 / 24 / 2 / 1, the budget at "£40 of £60 committed", and one open exception for BK-2026 on `/exceptions`.
+The approval dialog shows 24 to restore, 3 manual and 3 authorised. At the end, expect metrics 27 / 24 / 2 / 1, the budget at "£40 of £60 committed", and one open exception for BK-2026 on `/exceptions`.
 
 Close with: _"Stripe moves the money. Briefcase makes it legible. ArchOS repairs the outcome when the transaction breaks."_
 
-### Before you present
+<details>
+<summary><b>Before you present</b></summary>
 
 1. Check `/api/health`: `mongo`, `stripe`, `stripeTestKey` and `clearhomeTransfers` should be `true`. `nebius` and `modelAvailable` too if you want live extraction.
 2. Reset Scene 1 within 10 minutes of presenting. The provider hold lasts 30 minutes from the negotiate step.
-3. Open the Stripe dashboard in test mode, so you can show the PaymentIntent, refund and transfer IDs match the Money tab.
+3. Open the Stripe dashboard in test mode, to show that the PaymentIntent, refund and transfer IDs match the Money tab.
 4. Present from a production build (`npm run build && npm start`, or the deployed URL), not `npm run dev`.
 
-### If something goes wrong
+</details>
+
+<details>
+<summary><b>If something goes wrong</b></summary>
 
 | Symptom                                           | Do this                                                                                |
 | ------------------------------------------------- | -------------------------------------------------------------------------------------- |
 | Stripe error toast on charge                      | Press Next again. The retry reuses the same idempotency key, so it can't double-charge |
 | Money row reads "Reconciling" or "Failed"         | Press Recheck on that row. A definitive failure opens an exception with a Retry button |
-| Extraction badge says "Scripted fallback"         | Expected without a model key or on timeout. Policy is unchanged                        |
+| Extraction badge says fallback                    | Expected without a model key, or when the model times out. Policy is unchanged         |
 | Accept is disabled and the countdown says Expired | The hold ran out. Press Decline to refund the full £300, then reset                    |
 | "Database unreachable" banner                     | Check your network and Atlas, then press Retry                                         |
 | 409 toast after a double click                    | Ignore it. The step ran once                                                           |
 
-## Commands and tests
+</details>
 
-| Command                       | What it does                                                       |
-| ----------------------------- | ------------------------------------------------------------------ |
-| `npm run dev`                 | Dev server at http://localhost:3000                                |
-| `npm run build` · `npm start` | Production build and server                                        |
-| `npm test`                    | 270+ unit tests. No database or network, runs in about 2 seconds   |
-| `npm run test:acceptance`     | End-to-end tests against `MONGODB_TEST_DB` and your Stripe sandbox |
-| `npm run typecheck`           | TypeScript check                                                   |
-| `npm run lint`                | ESLint                                                             |
-| `npm run format`              | Prettier                                                           |
+## Configuration
 
-Acceptance tests reset their database, so they refuse to run if `MONGODB_TEST_DB` equals `MONGODB_DB`. They force scripted extraction to stay offline from the model.
+Local values go in `.env.local` (gitignored).
 
-## Deploying
+### Core
 
-The app targets Vercel in region `lhr1` (see `vercel.json`), with Atlas in AWS `eu-west-2`. Set the same environment variables in Vercel. Use `MONGODB_DB=archos` for production and `archos_preview` for previews, so a preview run never touches the stage demo. Check `/api/health` after every deploy. It returns `503` if MongoDB or Stripe is unreachable.
+| Variable          | Default       | Notes                                                        |
+| ----------------- | ------------- | ------------------------------------------------------------ |
+| `MONGODB_URI`     |               | Required                                                     |
+| `MONGODB_DB`      | `archos`      | Database the app uses                                        |
+| `MONGODB_TEST_DB` | `archos_test` | Reset by the acceptance tests. Must differ from `MONGODB_DB` |
 
-## Project layout
+### Stripe
 
-```
-src/
-  app/          Next.js routes: pages and /api/{demo,state,health}
-  engine/       Steps, gateway, policy, incident detection, recovery, exceptions, store
-  money/        Stripe client, payment outbox, verification, reconciliation, split maths
-  ledger/       Journal preview built from verified money
-  agent/        Live constraint extraction and its sanity checks
-  scenarios/    The two scenes: seed data, tools and recovery plans
-  ui/           React views and components
-scripts/        Stripe and database setup, Stripe spike
-tests/
-  unit/         Pure logic, offline
-  acceptance/   Full runs against MongoDB and Stripe test mode
-```
+| Variable                  | Default | Notes                                                                   |
+| ------------------------- | ------- | ----------------------------------------------------------------------- |
+| `STRIPE_SECRET_KEY`       |         | Required. `sk_test_` or `rk_test_` only. Live keys stop the app booting |
+| `STRIPE_SETUP_SECRET_KEY` |         | Full `sk_test_` key, used only by `npm run stripe:setup`                |
+| `STRIPE_ACCT_CLEARHOME`   |         | Connected account that receives the £224 transfer                       |
+| `STRIPE_VERIFY_TRIES`     | `5`     | Stripe read-back polls per money operation                              |
 
-Built with Next.js 16, React 19, MongoDB, Stripe, Zod, GSAP and Vitest.
+The `stripe` SDK (23.0.0) pins API version `2026-09-30.endive`. Charges use the `pm_card_bypassPending` test card, so funds are available for the transfer straight away.
+
+### Model
+
+| Variable          | Default           | Notes                                 |
+| ----------------- | ----------------- | ------------------------------------- |
+| `NEBIUS_API_KEY`  |                   | Enables live constraint extraction    |
+| `NEBIUS_MODEL`    | `zai-org/GLM-5.3` |                                       |
+| `LIVE_EXTRACTION` | on                | `off` forces the scripted constraints |
+
+### Demo
+
+| Variable            | Default | Notes                                                                         |
+| ------------------- | ------- | ----------------------------------------------------------------------------- |
+| `DEMO_KEY`          |         | Presenter key. When set, the browser asks for it once and every POST needs it |
+| `HOLD_MINUTES`      | `30`    | Provider hold and consent lifetime                                            |
+| `SUBSIDY_CAP_PENCE` | `2000`  | Per-case subsidy cap (£20)                                                    |
+| `STEP_PACE_MS`      | `60`    | Delay between Scene 2 recovery items, for the animation                       |
+
+## Development
+
+| Command                       | What it does                                                      |
+| ----------------------------- | ----------------------------------------------------------------- |
+| `npm run dev`                 | Dev server at http://localhost:3000                               |
+| `npm run build` · `npm start` | Production build and server                                       |
+| `npm test`                    | Unit tests. No database or network, about 2 seconds               |
+| `npm run test:acceptance`     | End-to-end runs against `MONGODB_TEST_DB` and your Stripe sandbox |
+| `npm run typecheck`           | TypeScript                                                        |
+| `npm run lint`                | ESLint                                                            |
+| `npm run format`              | Prettier                                                          |
+
+Acceptance tests reset their database, so they refuse to run if `MONGODB_TEST_DB` equals `MONGODB_DB`. They force scripted extraction so they never call the model.
+
+### Project structure
+
+| Directory       | Purpose                                                                  |
+| --------------- | ------------------------------------------------------------------------ |
+| `src/app`       | Next.js pages and the `/api/demo`, `/api/state` and `/api/health` routes |
+| `src/engine`    | Steps, gateway, policy, incident detection, recovery, exceptions, store  |
+| `src/money`     | Stripe client, payment outbox, verification, reconciliation, split maths |
+| `src/ledger`    | Journal built from verified money                                        |
+| `src/agent`     | Live constraint extraction and its sanity checks                         |
+| `src/scenarios` | The two scenes: seed data, tools and recovery plans                      |
+| `src/ui`        | React views and components                                               |
+| `scripts`       | Stripe and database setup, Stripe spike                                  |
+| `tests`         | `unit` runs offline; `acceptance` runs against MongoDB and Stripe        |
+
+## Deployment
+
+The app targets Vercel in region `lhr1` ([`vercel.json`](vercel.json)), with Atlas in AWS `eu-west-2`. Set the same environment variables in Vercel. Use `MONGODB_DB=archos` for production and `archos_preview` for previews, so a preview never touches the stage demo. Check `/api/health` after every deploy: it returns `503` if MongoDB or Stripe is unreachable.
 
 ## Limits
 
@@ -268,7 +334,7 @@ This is a demo, not a product.
 - Fictional data and the Stripe sandbox only.
 - No authentication beyond the optional presenter key.
 - One shared demo state per database. Reset clears it for everyone.
-- Fulfilment is simulated and labelled.
-- The model only extracts constraints. The full live agent loop is a stretch goal and is disabled in the UI.
-- The journal is a preview and is not posted to Briefcase.
+- Fulfilment is simulated.
+- The model only extracts constraints. The full live agent loop is not wired in.
+- The journal is not posted to Briefcase.
 - Gross commission is not profit.

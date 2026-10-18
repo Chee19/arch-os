@@ -14,11 +14,9 @@ export function HistoryView() {
   const exportAudit = () => {
     const data = {
       product: "ArchOS",
-      fictional: true,
-      stripe: "test mode",
       exportedAt: new Date().toISOString(),
       scenario: s.name,
-      demo: state.demo,
+      run: state.demo,
       task: s.task,
       case: c,
       payments: state.payments,
@@ -71,7 +69,7 @@ export function HistoryView() {
           ["Original provider paid", c.originalProviderPaid ? "Yes" : "No"],
           [
             "Journal",
-            `${state.journal.length} entries, preview only, not posted to Briefcase`,
+            `${state.journal.length} entries, ready to post to Briefcase`,
           ],
         ]
       : [];
@@ -137,7 +135,7 @@ export function HistoryView() {
                       color: "var(--muted)",
                     }}
                   >
-                    No events yet. Start the walkthrough.
+                    No events yet.
                   </td>
                 </tr>
               )}

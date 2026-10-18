@@ -105,7 +105,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
       try {
         let res = await post(window.localStorage.getItem(KEY));
         if (res.status === 401) {
-          const key = window.prompt("Presenter key");
+          const key = window.prompt("Access key");
           if (!key) return false;
           window.localStorage.setItem(KEY, key);
           res = await post(key);

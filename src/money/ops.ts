@@ -31,7 +31,7 @@ const BACKOFF_MS = [500, 1000, 2000];
 const verifyTries = () => Number(process.env.STRIPE_VERIFY_TRIES) || 5;
 const realSleep: Sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const STALE_RUN =
-  "The demo was reset while this payment was running. Nothing was saved to the new run.";
+  "The run was reset while this payment was running. Nothing was saved to the new run.";
 
 export const opIdOf = (
   s: Pick<OpSpec, "runId" | "caseId" | "kind" | "attempt">,
@@ -355,7 +355,9 @@ export async function replayOp(
     throw new StepError("Only a payment that Stripe accepted can be replayed.");
   // Stripe may prune keys after 24 h, and a replay after that would move money again.
   if (now().getTime() - op.createdAt.getTime() > 23 * 3_600_000)
-    throw new StepError("Replay only works within 24 hours; reset the demo.");
+    throw new StepError(
+      "Replay only works within 24 hours; reset and start again.",
+    );
   await assertCurrent(d, op);
   const stripeId = await create(s, op);
   return { stripeId, same: stripeId === op.stripeId };

@@ -180,9 +180,7 @@ export function Shell({ children }: { children: ReactNode }) {
               </>
             )}
           </div>
-          <div className="top-meta">
-            <span className="sandbox">Stripe test mode · fictional data</span>
-          </div>
+          <div className="top-meta"></div>
         </header>
         <div className="content">
           <div className="page-heading between">
@@ -191,7 +189,7 @@ export function Shell({ children }: { children: ReactNode }) {
               <div className="heading-actions">
                 <select
                   className="mode-select"
-                  aria-label="Scene"
+                  aria-label="Scenario"
                   value={state.demo.scenario}
                   disabled={busy}
                   onChange={(e) =>
@@ -204,25 +202,10 @@ export function Shell({ children }: { children: ReactNode }) {
                     </option>
                   ))}
                 </select>
-                <select
-                  className="mode-select"
-                  aria-label="Agent source"
-                  title="The full live agent loop is a stretch goal"
-                  value={state.demo.source}
-                  disabled={busy}
-                  onChange={(e) =>
-                    configure({ source: e.target.value as Source })
-                  }
-                >
-                  <option value="scripted">Scripted agent</option>
-                  <option value="live" disabled={state.demo.source !== "live"}>
-                    Live agent (stretch)
-                  </option>
-                </select>
                 <button
                   className="icon-btn"
-                  title="Reset demo"
-                  aria-label="Reset demo"
+                  title="Reset"
+                  aria-label="Reset"
                   disabled={busy}
                   onClick={() => void act({ action: "reset" })}
                 >
@@ -240,12 +223,6 @@ export function Shell({ children }: { children: ReactNode }) {
             </div>
           )}
           {state ? children : <Skeleton />}
-          <footer className="footer">
-            <span>
-              Fictional companies and people · Stripe test mode only · Scripted
-              agent with live constraint extraction
-            </span>
-          </footer>
         </div>
       </main>
       <div

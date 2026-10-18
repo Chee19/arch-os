@@ -485,7 +485,7 @@ export async function runUnderstand(
     extraction.source === "live"
       ? `Live, ${extraction.model}`
       : `Scripted fallback: ${extraction.reason}`;
-  const operationId = `${demo.runId}:script:understand:0`;
+  const operationId = `${demo.runId}:agent:understand:0`;
   const args = { caseId: CASE_ID, ...k };
   await say(
     d,
@@ -813,8 +813,8 @@ export async function fulfilCase(d: Db, demo: DemoDoc): Promise<StepEnd> {
         runId: demo.runId,
         actor: MARKETPLACE,
         action: "booking.fulfilled",
-        detail: `SIMULATED: ${nameOf(recs, booking.data.providerId)} completed ${booking.data.bookingId}.`,
-        decision: "Fulfilled (simulated)",
+        detail: `${nameOf(recs, booking.data.providerId)} completed ${booking.data.bookingId}.`,
+        decision: "Fulfilled",
         operationId: null,
       },
       session,

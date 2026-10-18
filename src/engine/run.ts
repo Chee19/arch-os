@@ -58,7 +58,7 @@ export async function advance(
       throw new StepError("Waiting for the customer to respond.");
     if (cur.step === expected && cur.status === "awaiting_approval")
       throw new StepError("Waiting for approval.");
-    throw new Conflict("The walkthrough already moved on.");
+    throw new Conflict("This run already moved on.");
   }
   // Filtering by runId keeps this step's own demo-doc writes out of a newer run.
   const mine = { _id: "demo" as const, runId: demo.runId };

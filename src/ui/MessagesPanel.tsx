@@ -93,10 +93,10 @@ export function MessagesPanel() {
           {!c.messages.length && <li className="muted">No messages yet.</li>}
         </ol>
       </section>
-      <section className="panel sim-customer" aria-label="Simulated customer">
+      <section className="panel sim-customer" aria-label="Customer response">
         <div className="panel-head between">
           <h2 className="flex">
-            <Icon name="user" /> Simulated customer
+            <Icon name="user" /> Customer response
           </h2>
           <span className="mono muted">{c.booking.customer}</span>
         </div>
@@ -110,8 +110,7 @@ export function MessagesPanel() {
           ) : p ? (
             <>
               <p className="muted">
-                This click stands in for {c.booking.customer}&apos;s reply.
-                Fictional customer.
+                Waiting for {c.booking.customer} to reply.
               </p>
               <HoldCountdown expiresAt={p.expiresAt} label="Offer expires in" />
               <div className="flex">

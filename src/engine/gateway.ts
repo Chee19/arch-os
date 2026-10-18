@@ -253,7 +253,7 @@ export async function runScript(
       runId: demo.runId,
       tool: c.tool,
       args: c.args,
-      operationId: `${demo.runId}:script:${key}:${i}`,
+      operationId: `${demo.runId}:agent:${key}:${i}`,
     });
     await save({
       role: "tool",

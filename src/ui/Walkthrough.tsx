@@ -47,7 +47,7 @@ export function Walkthrough({ onReview }: { onReview?: () => void }) {
     : current < 0
       ? "Advance at your own pace."
       : waitingCustomer
-        ? "Accept or decline in the Simulated customer panel (Messages tab)."
+        ? "Accept or decline in the Customer response panel (Messages tab)."
         : waitingApproval
           ? "Nothing is restored until you approve."
           : finished
@@ -55,7 +55,7 @@ export function Walkthrough({ onReview }: { onReview?: () => void }) {
             : `Next: ${nextStep?.label ?? ""}`;
 
   return (
-    <section className="walkthrough panel" aria-label="Demo walkthrough">
+    <section className="walkthrough panel" aria-label="Case steps">
       <div className="walkthrough-header between">
         <div className="flex">
           <span className={`badge ${STATUS_TONE[demo.status]}`}>
@@ -68,7 +68,7 @@ export function Walkthrough({ onReview }: { onReview?: () => void }) {
           {current < 0 ? "READY" : `STEP ${current + 1} OF ${steps.length}`}
         </span>
       </div>
-      <div className="demo-steps" aria-label="Demo steps">
+      <div className="demo-steps" aria-label="Steps">
         {steps.map((st, i) => (
           <button
             key={st.key}
@@ -166,11 +166,7 @@ export function Walkthrough({ onReview }: { onReview?: () => void }) {
                 disabled={submit !== "advance"}
                 onClick={next}
               >
-                {working
-                  ? "Working"
-                  : current < 0
-                    ? "Start walkthrough"
-                    : "Next step"}{" "}
+                {working ? "Working" : current < 0 ? "Start" : "Next step"}{" "}
                 <Icon name="arrow" />
               </button>
             )}

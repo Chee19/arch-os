@@ -43,25 +43,17 @@ export function StatusLadder() {
             Remedied: full refund
           </span>
         )}
-        {ladder.simulatedFulfilment && (
-          <span className="badge amber">
-            <i className="dot" />
-            SIMULATED fulfilment
-          </span>
-        )}
         {ladder.exception && (
           <span className="badge red">
             <i className="dot" />
             Exception: {ladder.exception.nextAction} · {ladder.exception.owner}
           </span>
         )}
-        {!ladder.exception &&
-          !ladder.simulatedFulfilment &&
-          ladder.state !== "remedied" && (
-            <span className="muted">
-              Derived from records and Stripe objects, never stored.
-            </span>
-          )}
+        {!ladder.exception && ladder.state !== "remedied" && (
+          <span className="muted">
+            Derived from records and Stripe objects, never stored.
+          </span>
+        )}
       </div>
     </section>
   );

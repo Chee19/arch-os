@@ -463,7 +463,7 @@ describe("stepResult", () => {
       ),
     ).toBe("27 bookings changed outside OPS-311");
     const blocked: UiAction = {
-      operationId: "run1:script:contain:0",
+      operationId: "run1:agent:contain:0",
       tool: "notifyCustomers",
       kind: "mutate",
       decision: "blocked",

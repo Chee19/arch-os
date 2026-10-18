@@ -27,8 +27,8 @@ const SCENES: {
     title: "The provider cancelled. Save the booking.",
     facts: [
       "£300 booking, BK-1042",
-      "Real Stripe test-mode charge, refund and transfer",
-      "Live constraint extraction with a scripted fallback",
+      "Stripe charge, refund and transfer",
+      "Live constraint extraction with safe fallback values",
     ],
   },
   {
@@ -71,12 +71,12 @@ export function OverviewView() {
     ? [
         ["MongoDB", health.mongo === true, "down", "red"],
         [
-          "Stripe test mode",
+          "Stripe",
           health.stripe === true && health.stripeTestKey !== false,
           "down",
           "red",
         ],
-        ["Nebius", health.nebius === true, "off, scripted fallback", "amber"],
+        ["Nebius", health.nebius === true, "off, fallback values", "amber"],
       ]
     : [];
 

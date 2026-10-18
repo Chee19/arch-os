@@ -88,7 +88,7 @@ function SayEntry({ m, i, agent }: { m: UiMessage; i: number; agent: string }) {
     <div className="console-item model" data-i={i}>
       <div className="between">
         <span className="mono">{agent}</span>
-        <span className="console-tag">SCRIPTED</span>
+        <span className="console-tag">NOTE</span>
       </div>
       {m.text && <p>{m.text}</p>}
     </div>
@@ -159,7 +159,7 @@ function CaseInputs({ c }: { c: UiCase }) {
             <i className="dot" />
             {x.source === "live"
               ? `Live, ${x.model ?? "model"}`
-              : `Scripted fallback: ${x.reason ?? "no reason recorded"}`}
+              : `Fallback values: ${x.reason ?? "no reason recorded"}`}
           </span>
         )}
       </div>
@@ -270,9 +270,7 @@ export function AgentConsole() {
       <div className="timeline-head between">
         <h2>Agent console</h2>
         <span className="mono muted" style={{ fontSize: 9 }}>
-          {live
-            ? `${agent} · ${tokens.toLocaleString("en-GB")} TOKENS`
-            : "SCRIPTED AGENT"}
+          {live ? `${agent} · ${tokens.toLocaleString("en-GB")} TOKENS` : agent}
         </span>
       </div>
       {state.case && <CaseInputs c={state.case} />}
@@ -292,7 +290,7 @@ export function AgentConsole() {
           ),
         )}
         {!entries.length && !modelWorking && (
-          <p className="muted">No calls yet. Start the walkthrough.</p>
+          <p className="muted">No calls yet.</p>
         )}
         {modelWorking && (
           <div

@@ -225,7 +225,7 @@ const LIVE_SYSTEM =
 export const providerCancel: Scenario = {
   id: "provider-cancel",
   name: "Provider cancelled",
-  short: "Scene 1",
+  short: "Booking rescue",
   agent: {
     id: "agt_archos_01",
     name: "ArchOS Recovery Agent",

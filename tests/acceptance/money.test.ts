@@ -200,7 +200,7 @@ describe.skipIf(!process.env.MONGODB_URI)(
       );
       expect(err).toBeInstanceOf(StepError);
       expect((err as Error).message).toBe(
-        "Replay only works within 24 hours; reset the demo.",
+        "Replay only works within 24 hours; reset and start again.",
       );
       expect(f.calls).toHaveLength(before);
     });

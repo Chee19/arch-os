@@ -7,7 +7,7 @@ export function checkKey(req: Request, expected = process.env.DEMO_KEY): void {
   const got = Buffer.from(req.headers.get("x-demo-key") ?? "");
   const want = Buffer.from(expected);
   if (got.length !== want.length || !timingSafeEqual(got, want))
-    throw new Unauthorized("Presenter key required.");
+    throw new Unauthorized("Access key required.");
 }
 
 export function errorResponse(e: unknown): Response {

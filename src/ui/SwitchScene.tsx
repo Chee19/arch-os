@@ -12,7 +12,7 @@ export function SwitchScene({ scenario }: { scenario: ScenarioId }) {
     <section className="panel empty-state">
       <Icon name="info" />
       <h2>This page shows {name}</h2>
-      <p>The current run is the other scene. Switching resets the demo.</p>
+      <p>The current run is the other scene. Switching starts a new run.</p>
       <button
         className="btn primary"
         disabled={busy}
