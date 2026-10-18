@@ -33,8 +33,8 @@ const NOW = new Date("2026-10-16T09:00:00Z");
 
 const constraints = (o: Partial<Constraints> = {}): Constraints => ({
   doneBy: "2026-10-16T14:00:00Z",
-  petFriendly: true,
-  oven: true,
+  twoMovers: true,
+  luton: true,
   maxPricePence: 30000,
   preferSameTime: true,
   notes: "",
@@ -42,9 +42,9 @@ const constraints = (o: Partial<Constraints> = {}): Constraints => ({
 });
 const provider = (o: Partial<ProviderData> = {}): ProviderData => ({
   providerId: "clearhome",
-  name: "ClearHome Cleaning",
-  petFriendly: true,
-  oven: true,
+  name: "ClearHome Removals",
+  twoMovers: true,
+  luton: true,
   rating: 4.8,
   connected: true,
   ...o,
@@ -89,7 +89,7 @@ const booking = (o: Partial<BookingData> = {}): BookingData => ({
   bookingId: "BK-1042",
   customer: "Maya Chen",
   client: null,
-  service: "End-of-tenancy clean",
+  service: "2-bed flat move",
   address: "Flat 3",
   startsAt: "2026-10-16T09:00:00Z",
   endsAt: "2026-10-16T13:00:00Z",
@@ -104,7 +104,7 @@ const caseData = (o: Partial<CaseData> = {}): CaseData => ({
   bookingId: "BK-1042",
   status: "open",
   paidPence: 30000,
-  originalProviderId: "quickshine",
+  originalProviderId: "quickmove",
   originalProviderPaid: false,
   cancellationText: null,
   customerText: null,
@@ -156,34 +156,33 @@ describe("matchConstraints", () => {
       slotId: "SLOT-clearhome-fri13",
     });
   });
-  it("rejects a provider without an oven", () => {
+  it("rejects a provider without a Luton van", () => {
     const m = matchConstraints(
       constraints(),
-      provider({ providerId: "sparkle", oven: false }),
-      [slot({ providerId: "sparkle" })],
+      provider({ providerId: "pronto", luton: false }),
+      [slot({ providerId: "pronto" })],
     );
     expect(m).toMatchObject({
       eligible: false,
-      why: "No oven cleaning",
+      why: "No Luton van",
       slotId: null,
     });
   });
-  it("rejects a provider that is not pet friendly only when required", () => {
-    const p = provider({ petFriendly: false });
+  it("rejects a provider without two movers only when required", () => {
+    const p = provider({ twoMovers: false });
     expect(matchConstraints(constraints(), p, [slot()])).toMatchObject({
       eligible: false,
-      why: "Not pet friendly",
+      why: "No two-person crew",
     });
     expect(
-      matchConstraints(constraints({ petFriendly: false }), p, [slot()])
-        .eligible,
+      matchConstraints(constraints({ twoMovers: false }), p, [slot()]).eligible,
     ).toBe(true);
   });
-  it("ignores the oven when not required", () => {
+  it("ignores the van size when not required", () => {
     expect(
       matchConstraints(
-        constraints({ oven: false }),
-        provider({ oven: false }),
+        constraints({ luton: false }),
+        provider({ luton: false }),
         [slot()],
       ).eligible,
     ).toBe(true);
@@ -381,7 +380,7 @@ describe("revalidate secure", () => {
     offer: offer(),
     slot: slotRec(3),
     booking: booking({
-      providerId: "quickshine",
+      providerId: "quickmove",
       status: "provider_cancelled",
     }),
     charge: charge(),

@@ -13,13 +13,13 @@ const RESOLD: Record<string, string> = {
   "BK-2019": "BK-9119",
   "BK-2026": "BK-9126",
 };
-const PROVIDERS = ["PROV-quickshine", "PROV-clearhome", "PROV-freshco"];
+const PROVIDERS = ["PROV-quickmove", "PROV-clearhome", "PROV-freshco"];
 const NAMES: Record<string, string> = {
-  "PROV-quickshine": "QuickShine Cleaning",
-  "PROV-clearhome": "ClearHome Cleaning",
+  "PROV-quickmove": "QuickMove Vans",
+  "PROV-clearhome": "ClearHome Removals",
   "PROV-freshco": "FreshCo",
 };
-// UTC start hours of the six two-hour cleans on each weekday.
+// UTC start hours of the six two-hour jobs on each weekday.
 const HOURS = [8, 9, 11, 12, 14, 15];
 const HOUR = 3_600_000;
 const DAY = 24 * HOUR;
@@ -116,7 +116,7 @@ export const bulkCancel: Scenario = {
         bookingId,
         customer: "Harbour Lettings tenant",
         client: CLIENT,
-        service: "End-of-tenancy clean",
+        service: "Tenant move-in",
         address: `Flat ${i + 1}, Harbour Court, London E14`,
         startsAt: iso(start),
         endsAt: iso(start + 2 * HOUR),

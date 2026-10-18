@@ -5,18 +5,18 @@ import type { BookingData, CaseData } from "@/engine/case";
 const H = 3_600_000;
 const at = (ms: number) => new Date(Date.now() + ms).toISOString();
 const CUSTOMER =
-  "I hand the keys back Friday 5pm so it must be done by 3pm. We have a cat. The oven needs doing. I can't pay more.";
+  "I hand the keys back Friday 5pm so everything must be out by 3pm. It's a full 2-bed on the 3rd floor with no lift, so I need two movers and the Luton. I can't pay more.";
 
 const booking: BookingData = {
   bookingId: "BK-1042",
   customer: "Maya Chen",
   client: null,
-  service: "End-of-tenancy clean",
+  service: "2-bed flat move",
   address: "Flat 3, 12 Larkspur Road, London",
   startsAt: at(48 * H),
   endsAt: at(52 * H),
   pricePence: 30000,
-  providerId: "PROV-quickshine",
+  providerId: "PROV-quickmove",
   slotId: null,
   status: "provider_cancelled",
 };
@@ -25,7 +25,7 @@ const caseData: CaseData = {
   bookingId: "BK-1042",
   status: "open",
   paidPence: 30000,
-  originalProviderId: "PROV-quickshine",
+  originalProviderId: "PROV-quickmove",
   originalProviderPaid: false,
   cancellationText: "Van broke down, can't do Friday's job at Flat 3.",
   customerText: CUSTOMER,
@@ -41,11 +41,11 @@ const caseData: CaseData = {
 };
 const valid = {
   doneBy: at(53 * H),
-  petFriendly: true,
-  oven: true,
+  twoMovers: true,
+  luton: true,
   maxPricePence: 30000,
   preferSameTime: true,
-  notes: "Cat at home. Oven clean.",
+  notes: "3rd floor, no lift. Full 2-bed.",
 };
 const answer = (content: string) =>
   vi.fn(
@@ -71,7 +71,7 @@ describe("parseExtraction", () => {
     ["invalid JSON", "{not json", /JSON/],
     [
       "a schema failure",
-      JSON.stringify({ ...valid, petFriendly: "yes" }),
+      JSON.stringify({ ...valid, twoMovers: "yes" }),
       /schema/,
     ],
     [

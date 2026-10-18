@@ -490,7 +490,7 @@ export async function runUnderstand(
   await say(
     d,
     demo.runId,
-    `Read both messages (${label}). Done by ${when(k.doneBy)}, ${k.petFriendly ? "pet-friendly" : "no pet requirement"}, ${k.oven ? "oven clean needed" : "no oven clean"}, at most ${money(k.maxPricePence)} in total.`,
+    `Read both messages (${label}). Done by ${when(k.doneBy)}, ${k.twoMovers ? "two movers" : "one mover is fine"}, ${k.luton ? "Luton van" : "any van size"}, at most ${money(k.maxPricePence)} in total.`,
     { id: operationId, tool: "recordConstraints", args },
   );
   const r = await callTool(d, {

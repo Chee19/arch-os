@@ -21,7 +21,7 @@ const booking = (o: Partial<BookingData> = {}): BookingData => ({
   bookingId: "BK-1042",
   customer: "Maya Chen",
   client: null,
-  service: "End-of-tenancy clean",
+  service: "2-bed flat move",
   address: "Flat 3",
   startsAt: "2026-10-16T09:00:00Z",
   endsAt: "2026-10-16T13:00:00Z",
@@ -36,7 +36,7 @@ const caseData = (o: Partial<CaseData> = {}): CaseData => ({
   bookingId: "BK-1042",
   status: "open",
   paidPence: 30000,
-  originalProviderId: "quickshine",
+  originalProviderId: "quickmove",
   originalProviderPaid: false,
   cancellationText: null,
   customerText: null,
@@ -140,7 +140,7 @@ describe("latestOps", () => {
 describe("ladderOf states", () => {
   it("investigating with no offers or only quoted and held offers", () => {
     const b = booking({
-      providerId: "quickshine",
+      providerId: "quickmove",
       status: "provider_cancelled",
     });
     expect(
@@ -169,7 +169,7 @@ describe("ladderOf states", () => {
       replacementProviderId: null,
     });
     const b = booking({
-      providerId: "quickshine",
+      providerId: "quickmove",
       status: "provider_cancelled",
     });
     expect(ladderOf(input({ caseData: c, booking: b })).state).toBe("offered");
@@ -209,7 +209,7 @@ describe("ladderOf states", () => {
 
   it("a secured offer without booking evidence is only offered", () => {
     const b = booking({
-      providerId: "quickshine",
+      providerId: "quickmove",
       status: "provider_cancelled",
     });
     expect(ladderOf(input({ booking: b })).state).toBe("offered");
@@ -234,7 +234,7 @@ describe("ladderOf states", () => {
       ladderOf(
         input({
           caseData: notSecured,
-          booking: booking({ providerId: "quickshine" }),
+          booking: booking({ providerId: "quickmove" }),
         }),
       ).state,
     ).toBe("offered");
@@ -287,7 +287,7 @@ describe("ladderOf states", () => {
       replacementProviderId: null,
     });
     const b = booking({
-      providerId: "quickshine",
+      providerId: "quickmove",
       status: "provider_cancelled",
     });
     const l = ladderOf(
@@ -307,7 +307,7 @@ describe("ladderOf states", () => {
       replacementProviderId: null,
     });
     const b = booking({
-      providerId: "quickshine",
+      providerId: "quickmove",
       status: "provider_cancelled",
     });
     for (const state of ["intended", "requested", "pending"] as const) {
@@ -337,7 +337,7 @@ describe("remedy refund on an open case", () => {
     offers: [offer({ state: "proposed" })],
     replacementProviderId: null,
   });
-  const b = booking({ providerId: "quickshine", status: "provider_cancelled" });
+  const b = booking({ providerId: "quickmove", status: "provider_cancelled" });
   it("remedied once the full refund succeeded", () => {
     const l = ladderOf(
       input({

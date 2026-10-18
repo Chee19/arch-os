@@ -64,7 +64,7 @@ const WORKSPACE = "Larkspur Home Services";
 const SEARCH_ORDER = [
   "PROV-brightnest",
   "PROV-clearhome",
-  "PROV-sparkle",
+  "PROV-pronto",
   "PROV-freshco",
 ];
 const SECURED_OR_LATER = ["secured", "fulfilled", "settled"];

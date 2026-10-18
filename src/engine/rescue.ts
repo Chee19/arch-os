@@ -52,7 +52,7 @@ export function rescueInputs(
 ): { cases: AllocCase[]; slots: AllocSlot[] } {
   const cases = targets.map((target) => {
     const b = bookingOf(recs, target).data;
-    // The replacement must be finished by the time the original clean was due to start.
+    // The replacement must be finished by the time the original job was due to start.
     return {
       target,
       startsAt: b.startsAt,

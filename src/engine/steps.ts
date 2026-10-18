@@ -19,8 +19,8 @@ export const STEP_META: Record<StepKey, StepMeta> = {
   },
   failure: {
     label: "Provider cancels",
-    actor: "QuickShine Cleaning",
-    title: "QuickShine cancels Friday's clean",
+    actor: "QuickMove Vans",
+    title: "QuickMove cancels Friday's move",
     check:
       "\"Van broke down, can't do Friday's job at Flat 3.\" BK-1042 is now provider cancelled and CASE-1042 opens with £300 of booking value at risk.",
     focusTab: "reasoning",
@@ -38,7 +38,7 @@ export const STEP_META: Record<StepKey, StepMeta> = {
     actor: "ArchOS Recovery Agent",
     title: "Four providers checked against the constraints",
     check:
-      "Eligibility is computed by code: a free slot that ends before 3pm Friday, pet friendly, and oven cleaning included.",
+      "Eligibility is computed by code: a free slot that ends before 3pm Friday, two movers, and a Luton van.",
     focusTab: "candidates",
   },
   boundary: {
@@ -83,8 +83,8 @@ export const STEP_META: Record<StepKey, StepMeta> = {
   },
   fulfil: {
     label: "Fulfil",
-    actor: "ClearHome Cleaning · simulated",
-    title: "ClearHome completes the clean",
+    actor: "ClearHome Removals · simulated",
+    title: "ClearHome completes the move",
     check:
       "A fulfilment event is recorded and labelled SIMULATED. No provider is paid before it exists.",
     focusTab: "money",
@@ -117,8 +117,7 @@ export const STEP_META: Record<StepKey, StepMeta> = {
     label: "Agent reads",
     actor: "Ops Agent",
     title: "The agent lists Harbour Lettings' bookings",
-    check:
-      "listBookings returns all 30 end-of-tenancy cleans booked for next week.",
+    check: "listBookings returns all 30 tenant move-ins booked for next week.",
     focusTab: "reasoning",
   },
   agentActs: {

@@ -182,12 +182,12 @@ function CaseInputs({ c }: { c: UiCase }) {
             <dd>{when(k.doneBy)}</dd>
           </div>
           <div>
-            <dt>Pet-friendly</dt>
-            <dd>{k.petFriendly ? "Required" : "No"}</dd>
+            <dt>Two movers</dt>
+            <dd>{k.twoMovers ? "Required" : "No"}</dd>
           </div>
           <div>
-            <dt>Oven clean</dt>
-            <dd>{k.oven ? "Required" : "No"}</dd>
+            <dt>Luton van</dt>
+            <dd>{k.luton ? "Required" : "No"}</dd>
           </div>
           <div>
             <dt>Most the customer pays</dt>

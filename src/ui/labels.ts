@@ -12,7 +12,7 @@ export type ToneClass = "" | "green" | "amber" | "red";
 
 export const SCENE_INTRO: Record<ScenarioId, string> = {
   "provider-cancel":
-    "QuickShine cancels Maya Chen's £300 end-of-tenancy clean. The agent finds a replacement within policy, Maya accepts, and real Stripe test-mode money moves. Policy, consent and every Stripe call are plain code.",
+    "QuickMove cancels Maya Chen's £300 flat move. The agent finds a replacement within policy, Maya accepts, and real Stripe test-mode money moves. Policy, consent and every Stripe call are plain code.",
   "bulk-cancel":
     "The Ops Agent was approved to cancel 3 Harbour Lettings bookings and cancelled 30. ArchOS detects it, contains the agent, restores what it can, replaces what it must and gives the rest a named owner.",
 };

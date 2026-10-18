@@ -30,18 +30,18 @@ const provider = (
 ): ProviderData => ({
   providerId,
   name,
-  petFriendly: true,
-  oven: true,
+  twoMovers: true,
+  luton: true,
   rating: 4.6,
   connected: false,
   ...o,
 });
 // Deliberately not in search order.
 const PROVIDERS = [
-  provider("PROV-quickshine", "QuickShine Cleaning"),
+  provider("PROV-quickmove", "QuickMove Vans"),
   provider("PROV-freshco", "FreshCo"),
-  provider("PROV-sparkle", "Sparkle & Co", { oven: false }),
-  provider("PROV-clearhome", "ClearHome Cleaning", {
+  provider("PROV-pronto", "Pronto Vans", { luton: false }),
+  provider("PROV-clearhome", "ClearHome Removals", {
     connected: true,
     _sim: { quotePence: 29000, floorPence: 28000 },
   }),
@@ -80,14 +80,14 @@ const slots = (clearhome: Partial<SlotData> = {}): SlotData[] => [
     clearhome,
   ),
   slot(
-    "SLOT-sparkle-fri09",
-    "PROV-sparkle",
+    "SLOT-pronto-fri09",
+    "PROV-pronto",
     "2026-10-16T08:00:00Z",
     "2026-10-16T10:00:00Z",
   ),
   slot(
-    "SLOT-quickshine-fri10",
-    "PROV-quickshine",
+    "SLOT-quickmove-fri10",
+    "PROV-quickmove",
     "2026-10-16T09:00:00Z",
     "2026-10-16T11:00:00Z",
     { status: "booked", bookingId: "BK-1042" },
@@ -131,15 +131,15 @@ const caseData = (o: Partial<CaseData> = {}): CaseData => ({
   bookingId: "BK-1042",
   status: "open",
   paidPence: 30000,
-  originalProviderId: "PROV-quickshine",
+  originalProviderId: "PROV-quickmove",
   originalProviderPaid: false,
   cancellationText: "Van broke down",
   customerText: "Done by 3pm please",
   rescueDeadline: "2026-10-16T10:00:00Z",
   constraints: {
     doneBy: "2026-10-16T14:00:00Z",
-    petFriendly: true,
-    oven: true,
+    twoMovers: true,
+    luton: true,
     maxPricePence: 30000,
     preferSameTime: true,
     notes: "",
@@ -157,13 +157,13 @@ const booking = (o: Partial<BookingData> = {}): BookingData => ({
   bookingId: "BK-1042",
   customer: "Maya Chen",
   client: null,
-  service: "End-of-tenancy clean",
+  service: "2-bed flat move",
   address: "Flat 3, 12 Mare Street",
   startsAt: "2026-10-16T09:00:00Z",
   endsAt: "2026-10-16T11:00:00Z",
   pricePence: 30000,
-  providerId: "PROV-quickshine",
-  slotId: "SLOT-quickshine-fri10",
+  providerId: "PROV-quickmove",
+  slotId: "SLOT-quickmove-fri10",
   status: "provider_cancelled",
   ...o,
 });
@@ -227,11 +227,11 @@ describe("candidatesOf", () => {
     expect(states(caseData())).toEqual([
       ["PROV-brightnest", "potential", true],
       ["PROV-clearhome", "potential", true],
-      ["PROV-sparkle", "potential", false],
+      ["PROV-pronto", "potential", false],
       ["PROV-freshco", "potential", false],
     ]);
     const list = candidatesOf(caseData(), PROVIDERS, slots(), NOW);
-    expect(list[2].why).toBe("No oven cleaning");
+    expect(list[2].why).toBe("No Luton van");
     expect(list[3].slotLabel).toBeNull();
   });
   it("boundary: a quote is a confirmed offer and a policy denial is a rejected card", () => {
@@ -341,7 +341,7 @@ describe("buildCase", () => {
     );
     expect(k.proposal).toMatchObject({
       offerId: "OFR-PROV-clearhome",
-      providerName: "ClearHome Cleaning",
+      providerName: "ClearHome Removals",
       startsAt: "2026-10-16T12:00:00Z",
       expiresAt: HOLD_END,
     });
@@ -367,7 +367,7 @@ describe("buildCase", () => {
       NOW,
     );
     expect(k.ladder.state).toBe("secured");
-    expect(k.booking.providerName).toBe("ClearHome Cleaning");
+    expect(k.booking.providerName).toBe("ClearHome Removals");
     expect(k.tiles).toEqual({
       atRiskPence: 30000,
       provisionalPence: 28000,

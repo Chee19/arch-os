@@ -55,8 +55,8 @@ export function parseExtraction(
   const v = parsed.data as Constraints;
   const k: Constraints = {
     doneBy: v.doneBy,
-    petFriendly: v.petFriendly,
-    oven: v.oven,
+    twoMovers: v.twoMovers,
+    luton: v.luton,
     maxPricePence: v.maxPricePence,
     preferSameTime: v.preferSameTime,
     notes: v.notes,
@@ -80,8 +80,8 @@ function prompt(c: CaseData, b: BookingData) {
     {
       role: "system",
       content: [
-        "You turn the messages about a cancelled cleaning booking into constraints. Reply with one JSON object and nothing else.",
-        "Use exactly these fields: doneBy (ISO 8601 UTC datetime ending in Z, the latest time the clean must be finished), petFriendly (boolean, true if the home has pets), oven (boolean, true if the oven needs cleaning), maxPricePence (integer, the most the customer will pay in total, in pence, so 300 pounds is 30000), preferSameTime (boolean, true unless the customer asks for another time), notes (string under 200 characters).",
+        "You turn the messages about a cancelled man and van booking into constraints. Reply with one JSON object and nothing else.",
+        "Use exactly these fields: doneBy (ISO 8601 UTC datetime ending in Z, the latest time the move must be finished), twoMovers (boolean, true if the job needs two movers, for example stairs without a lift or bulky furniture), luton (boolean, true if the job needs a Luton van, for example a full 2-bed home or larger), maxPricePence (integer, the most the customer will pay in total, in pence, so 300 pounds is 30000), preferSameTime (boolean, true unless the customer asks for another time), notes (string under 200 characters).",
         "Times in the messages are Europe/London local time.",
       ].join("\n"),
     },

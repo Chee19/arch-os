@@ -67,12 +67,12 @@ describe("provider-cancel seed", () => {
       "PROV-brightnest",
       "PROV-clearhome",
       "PROV-freshco",
-      "PROV-quickshine",
-      "PROV-sparkle",
+      "PROV-pronto",
+      "PROV-quickmove",
       "SLOT-brightnest-fri10",
       "SLOT-clearhome-fri13",
-      "SLOT-quickshine-fri10",
-      "SLOT-sparkle-fri09",
+      "SLOT-pronto-fri09",
+      "SLOT-quickmove-fri10",
     ]);
     expect(seed.filter((r) => r.target !== null).map((r) => r.target)).toEqual([
       "BK-1042",
@@ -82,13 +82,13 @@ describe("provider-cancel seed", () => {
       startsAt: "2026-10-16T09:00:00.000Z",
       endsAt: "2026-10-16T11:00:00.000Z",
       pricePence: 30000,
-      providerId: "PROV-quickshine",
+      providerId: "PROV-quickmove",
       status: "confirmed",
     });
     expect(caseOf(seed).data).toMatchObject({
       status: "booked",
       paidPence: 30000,
-      originalProviderId: "PROV-quickshine",
+      originalProviderId: "PROV-quickmove",
       originalProviderPaid: false,
       cancellationText: null,
       rescueDeadline: new Date(NOW.getTime() + 2 * HOUR).toISOString(),
@@ -97,7 +97,7 @@ describe("provider-cancel seed", () => {
       rejected: [],
       messages: [],
     });
-    expect(slot(seed, "SLOT-quickshine-fri10")?.data).toMatchObject({
+    expect(slot(seed, "SLOT-quickmove-fri10")?.data).toMatchObject({
       status: "booked",
       bookingId: "BK-1042",
     });
@@ -111,11 +111,11 @@ describe("provider-cancel seed", () => {
       ),
     ).toEqual({
       doneBy: "2026-10-16T14:00:00.000Z",
-      petFriendly: true,
-      oven: true,
+      twoMovers: true,
+      luton: true,
       maxPricePence: 30000,
       preferSameTime: true,
-      notes: "Keys back Fri 17:00. Cat in the flat. Oven needed.",
+      notes: "Keys back Fri 17:00. 3rd floor, no lift. Full 2-bed.",
     }));
 });
 
@@ -128,7 +128,7 @@ describe("provider-cancel tools", () => {
     expect(r.map((p) => [p.providerId, p.eligible])).toEqual([
       ["PROV-brightnest", true],
       ["PROV-clearhome", true],
-      ["PROV-sparkle", false],
+      ["PROV-pronto", false],
       ["PROV-freshco", false],
     ]);
   });
@@ -167,15 +167,15 @@ describe("provider-cancel tools", () => {
     });
   });
 
-  it("denies BrightNest at £340 as over_subsidy and a no-oven provider as hard_constraint", () => {
+  it("denies BrightNest at £340 as over_subsidy and a provider without a Luton as hard_constraint", () => {
     const deny = offerPolicy(ready, { ...BRIGHTNEST, pricePence: 34000 });
     expect(deny?.reason).toBe("over_subsidy");
     expect(offerPolicy(ready, BRIGHTNEST)).toBeNull();
     expect(
       offerPolicy(ready, {
         caseId: CASE,
-        providerId: "PROV-sparkle",
-        slotId: "SLOT-sparkle-fri09",
+        providerId: "PROV-pronto",
+        slotId: "SLOT-pronto-fri09",
         pricePence: 25000,
       })?.reason,
     ).toBe("hard_constraint");
@@ -240,7 +240,7 @@ describe("provider-cancel tools", () => {
     expect(JSON.stringify(results)).not.toMatch(/_sim|floorPence/);
     expect(clearhome(recs)?.state).toBe("proposed");
     expect(caseOf(recs).data.messages.map((m) => [m.party, m.kind])).toEqual([
-      ["ClearHome Cleaning", "text"],
+      ["ClearHome Removals", "text"],
       ["Maya Chen", "proposal"],
       ["Maya Chen", "text"],
     ]);

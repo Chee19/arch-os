@@ -18,8 +18,8 @@ export type BookingData = {
 export type ProviderData = {
   providerId: string;
   name: string;
-  petFriendly: boolean;
-  oven: boolean;
+  twoMovers: boolean;
+  luton: boolean;
   rating: number;
   connected: boolean; // has a Stripe connected account
   _sim?: { quotePence: number; floorPence: number };
@@ -34,8 +34,8 @@ export type SlotData = {
 };
 export type Constraints = {
   doneBy: string;
-  petFriendly: boolean;
-  oven: boolean;
+  twoMovers: boolean;
+  luton: boolean;
   maxPricePence: number;
   preferSameTime: boolean;
   notes: string;
@@ -151,6 +151,6 @@ export function withMessage(
 
 // Whitelist rather than omit, so a new simulator field can never leak into a tool result.
 export function publicProvider(p: ProviderData): Omit<ProviderData, "_sim"> {
-  const { providerId, name, petFriendly, oven, rating, connected } = p;
-  return { providerId, name, petFriendly, oven, rating, connected };
+  const { providerId, name, twoMovers, luton, rating, connected } = p;
+  return { providerId, name, twoMovers, luton, rating, connected };
 }

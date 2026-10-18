@@ -71,8 +71,8 @@ export function matchConstraints(
     why,
     slotId: null,
   });
-  if (c.petFriendly && !p.petFriendly) return no("Not pet friendly");
-  if (c.oven && !p.oven) return no("No oven cleaning");
+  if (c.twoMovers && !p.twoMovers) return no("No two-person crew");
+  if (c.luton && !p.luton) return no("No Luton van");
   const fit = slots
     .filter(
       (s) =>

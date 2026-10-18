@@ -3,11 +3,11 @@ import { STRIPE_API_VERSION } from "@/money/stripe";
 
 const EMAIL = "clearhome@example.com";
 const PROFILE = {
-  name: "ClearHome Cleaning",
-  mcc: "7349",
+  name: "ClearHome Removals",
+  mcc: "4214",
   // Stripe's test value that passes website validation; example.com is rejected as url_invalid.
   url: "https://accessible.stripe.com",
-  product_description: "Fictional cleaning provider for the ArchOS demo.",
+  product_description: "Fictional man and van provider for the ArchOS demo.",
 };
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
@@ -85,7 +85,7 @@ async function main() {
       currency: "gbp",
       routing_number: "108800",
       account_number: "00012345",
-      account_holder_name: "ClearHome Cleaning",
+      account_holder_name: "ClearHome Removals",
       account_holder_type: "individual",
     },
     tos_acceptance: { date: Math.floor(Date.now() / 1000), ip: "127.0.0.1" },

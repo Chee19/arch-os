@@ -38,54 +38,54 @@ const DAY = 24 * HOUR;
 const BOOKING = "BK-1042";
 const CASE = "CASE-1042";
 const PAID = 30000;
-const ORIGINAL = "PROV-quickshine";
+const ORIGINAL = "PROV-quickmove";
 
 export const CANCELLATION_TEXT =
   "Van broke down, can't do Friday's job at Flat 3.";
 export const CUSTOMER_TEXT =
-  "I hand the keys back Friday 5pm so it must be done by 3pm. We have a cat. The oven needs doing. I can't pay more.";
+  "I hand the keys back Friday 5pm so everything must be out by 3pm. It's a full 2-bed on the 3rd floor with no lift, so I need two movers and the Luton. I can't pay more.";
 
 // Search returns providers in this order, minus the one that cancelled.
 const PROVIDERS: ProviderData[] = [
   {
     providerId: "PROV-brightnest",
     name: "BrightNest",
-    petFriendly: true,
-    oven: true,
+    twoMovers: true,
+    luton: true,
     rating: 4.9,
     connected: false,
     _sim: { quotePence: 34000, floorPence: 34000 },
   },
   {
     providerId: "PROV-clearhome",
-    name: "ClearHome Cleaning",
-    petFriendly: true,
-    oven: true,
+    name: "ClearHome Removals",
+    twoMovers: true,
+    luton: true,
     rating: 4.8,
     connected: true,
     _sim: { quotePence: 29000, floorPence: 28000 },
   },
   {
-    providerId: "PROV-sparkle",
-    name: "Sparkle & Co",
-    petFriendly: true,
-    oven: false,
+    providerId: "PROV-pronto",
+    name: "Pronto Vans",
+    twoMovers: true,
+    luton: false,
     rating: 4.7,
     connected: false,
   },
   {
     providerId: "PROV-freshco",
     name: "FreshCo",
-    petFriendly: true,
-    oven: true,
+    twoMovers: true,
+    luton: true,
     rating: 4.6,
     connected: false,
   },
   {
     providerId: ORIGINAL,
-    name: "QuickShine Cleaning",
-    petFriendly: true,
-    oven: true,
+    name: "QuickMove Vans",
+    twoMovers: true,
+    luton: true,
     rating: 4.4,
     connected: false,
   },
@@ -96,8 +96,8 @@ const PROVIDERS: ProviderData[] = [
 const SLOTS: [string, string, number, number][] = [
   ["SLOT-brightnest-fri10", "PROV-brightnest", 10, 12],
   ["SLOT-clearhome-fri13", "PROV-clearhome", 13, 15],
-  ["SLOT-sparkle-fri09", "PROV-sparkle", 9, 11],
-  ["SLOT-quickshine-fri10", ORIGINAL, 10, 12],
+  ["SLOT-pronto-fri09", "PROV-pronto", 9, 11],
+  ["SLOT-quickmove-fri10", ORIGINAL, 10, 12],
 ];
 
 const LONDON = new Intl.DateTimeFormat("en-GB", {
@@ -143,11 +143,11 @@ export function scriptedConstraintsFor(
   const { y, m, d } = londonParts(new Date(booking.startsAt));
   return {
     doneBy: londonAt(y, m, d, 15).toISOString(),
-    petFriendly: true,
-    oven: true,
+    twoMovers: true,
+    luton: true,
     maxPricePence: caseData.paidPence,
     preferSameTime: true,
-    notes: "Keys back Fri 17:00. Cat in the flat. Oven needed.",
+    notes: "Keys back Fri 17:00. 3rd floor, no lift. Full 2-bed.",
   };
 }
 
@@ -191,8 +191,8 @@ const CaseArgs = z.object({ caseId: z.string() });
 const RecordConstraintsArgs = z.object({
   caseId: z.string(),
   doneBy: z.iso.datetime(),
-  petFriendly: z.boolean(),
-  oven: z.boolean(),
+  twoMovers: z.boolean(),
+  luton: z.boolean(),
   maxPricePence: z.number().int().positive().max(100000),
   preferSameTime: z.boolean(),
   notes: z.string().max(500),
@@ -215,12 +215,12 @@ const CLEARHOME = {
   slotId: "SLOT-clearhome-fri13",
 };
 const PROPOSAL =
-  "ClearHome Cleaning can do your end-of-tenancy clean on Friday from 1pm to 3pm, before your 3pm deadline. They are fine with your cat and will clean the oven. The price is £280, so £20 of the £300 you paid comes back to you.";
+  "ClearHome Removals can do your move on Friday from 1pm to 3pm, so everything is out before your 3pm deadline. They are sending two movers and a Luton van. The price is £280, so £20 of the £300 you paid comes back to you.";
 const TO_MAYA =
-  "Hi Maya, sorry, QuickShine had to cancel Friday's clean. I have found ClearHome Cleaning for Friday 1pm to 3pm, done before you hand the keys back. Please accept or decline the proposal before the hold time shown on it. If you decline, your £300 is refunded in full.";
+  "Hi Maya, sorry, QuickMove had to cancel Friday's move. I have found ClearHome Removals for Friday 1pm to 3pm, done before you hand the keys back. Please accept or decline the proposal before the hold time shown on it. If you decline, your £300 is refunded in full.";
 // Floors and the subsidy cap stay out of the prompt so a live run meets the policy denial.
 const LIVE_SYSTEM =
-  "You are the ArchOS Recovery Agent for Larkspur Home Services, a cleaning marketplace in London. A provider cancelled a booking. Read the case, record the customer's constraints, find a replacement provider that meets them, agree a price, and propose the held offer with proposeRecovery. Stop after a successful proposeRecovery. You cannot take payments, give refunds or accept on the customer's behalf. ArchOS handles money after the customer accepts.";
+  "You are the ArchOS Recovery Agent for Larkspur Home Services, a man and van marketplace in London. A provider cancelled a booking. Read the case, record the customer's constraints, find a replacement provider that meets them, agree a price, and propose the held offer with proposeRecovery. Stop after a successful proposeRecovery. You cannot take payments, give refunds or accept on the customer's behalf. ArchOS handles money after the customer accepts.";
 
 export const providerCancel: Scenario = {
   id: "provider-cancel",
@@ -256,13 +256,13 @@ export const providerCancel: Scenario = {
       bookingId: BOOKING,
       customer: "Maya Chen",
       client: null,
-      service: "End-of-tenancy clean",
+      service: "2-bed flat move",
       address: "Flat 3, 12 Mare Street, London E8",
       startsAt: at(10),
       endsAt: at(12),
       pricePence: PAID,
       providerId: ORIGINAL,
-      slotId: "SLOT-quickshine-fri10",
+      slotId: "SLOT-quickmove-fri10",
       status: "confirmed",
     };
     const shell: CaseData = {
@@ -549,7 +549,7 @@ export const providerCancel: Scenario = {
       step: "search",
       tool: "searchProviders",
       args: { caseId: CASE },
-      say: "Looking for providers who can finish Flat 3 by 3pm on Friday, are fine with a cat and clean ovens.",
+      say: "Looking for providers who can clear Flat 3 by 3pm on Friday with two movers and a Luton van.",
     },
     {
       step: "boundary",
@@ -570,7 +570,7 @@ export const providerCancel: Scenario = {
         caseId: CASE,
         to: "provider",
         providerId: "PROV-clearhome",
-        text: "Hi ClearHome, can you do an end-of-tenancy clean at Flat 3, 12 Mare Street, London E8 this Friday from 1pm to 3pm? There is a cat in the flat and the oven needs cleaning.",
+        text: "Hi ClearHome, can you do a 2-bed flat move from Flat 3, 12 Mare Street, London E8 this Friday from 1pm to 3pm? It is on the 3rd floor with no lift, so it needs two movers and a Luton van.",
       },
       say: "BrightNest was blocked for going over what Maya paid. Contacting ClearHome, the next provider that meets every constraint.",
     },
