@@ -1,0 +1,181 @@
+.incident-page {
+  display: grid;
+  gap: 24px;
+}
+.incident-banner {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+  padding: 20px 23px;
+  border-radius: 17px;
+  background: #f7e8e29c;
+  border: 1px solid #fff8;
+  color: #896656;
+}
+.incident-banner strong {
+  font-size: 12px;
+}
+.incident-banner p {
+  font-size: 11px;
+  margin-top: 4px;
+  color: #7f6b63;
+}
+.case-grid > aside {
+  display: grid;
+  gap: 20px;
+}
+.task-text {
+  font-size: 13px;
+  line-height: 1.9;
+  margin: 8px 0 20px;
+}
+.plan-row {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  border-bottom: 1px solid var(--line);
+  padding: 23px 0;
+}
+.plan-row:last-of-type {
+  border: 0;
+}
+.plan-row h3 {
+  font-size: 13px;
+}
+.plan-row p {
+  font-size: 11px;
+  line-height: 1.9;
+  margin-top: 6px;
+}
+.plan-row > svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: #5c7361;
+  margin-left: auto;
+}
+.step-number {
+  display: inline-grid;
+  place-items: center;
+  width: 31px;
+  height: 31px;
+  border-radius: 11px;
+  flex-shrink: 0;
+  font-size: 11px;
+}
+.step-number.mint {
+  background: #dcebe0;
+  color: #4f6b55;
+}
+.step-number.blue {
+  background: #dce6f3;
+  color: #566e8c;
+}
+.step-number.apricot {
+  background: #f6e3d3;
+  color: #8a6244;
+}
+.budget-amount {
+  font-size: 41px;
+  font-family: var(--heading);
+  font-weight: 600;
+  color: #7f67ad;
+  margin: 12px 0;
+}
+.budget-amount span {
+  font-size: 19px;
+  color: #756b83;
+  font-weight: 400;
+}
+.budget-track {
+  height: 7px;
+  border-radius: 5px;
+  background: #e7deee;
+  overflow: hidden;
+  margin: 20px 0;
+}
+.budget-track span {
+  height: 100%;
+  display: block;
+  background: #b59bd5;
+  border-radius: 5px;
+  transition: width 0.6s ease;
+}
+.next-step .btn {
+  margin-top: 22px;
+  width: 100%;
+  font-size: 11px;
+  justify-content: center;
+}
+.case-grid > aside .mini-facts .btn {
+  margin-top: 14px;
+}
+.incident-section {
+  display: grid;
+  gap: 22px;
+}
+.incident-section .scope,
+.incident-section .lane-grid {
+  margin: 0;
+}
+.record-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  font-size: 11px;
+  color: var(--muted);
+}
+.record-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+.record-legend b {
+  color: var(--ink);
+}
+.minor.strong {
+  color: var(--text);
+}
+.containment {
+  display: grid;
+  gap: 14px;
+}
+.containment p {
+  font-size: 11px;
+  line-height: 1.9;
+}
+.containment .btn {
+  justify-self: start;
+}
+.incident-approvals {
+  padding-left: 20px;
+  font-size: 12px;
+  color: #766a7f;
+  line-height: 1.9;
+}
+.incident-approvals li {
+  padding: 7px 0;
+}
+@media (max-width: 1100px) {
+  .case-grid {
+    grid-template-columns: 1fr;
+  }
+  .case-grid > aside {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+@media (max-width: 700px) {
+  .case-grid > aside {
+    grid-template-columns: 1fr;
+  }
+  .incident-banner {
+    align-items: flex-start;
+  }
+  .plan-row {
+    align-items: flex-start;
+  }
+  .incident-stats .stat-card {
+    min-height: 150px;
+  }
+}

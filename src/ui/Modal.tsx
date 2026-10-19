@@ -13,7 +13,7 @@ export function Modal({
   open: boolean;
   onClose: () => void;
   labelledBy: string;
-  className?: "dialog" | "drawer";
+  className?: "dialog" | "dialog wide" | "drawer";
   children: ReactNode;
 }) {
   const ref = useRef<HTMLDialogElement>(null);

@@ -603,13 +603,13 @@ export const providerCancel: Scenario = {
   plan: () => ({
     kind: "manual",
     action: null,
-    reason: "Not used in Scene 1.",
+    reason: "Not used for booking rescues.",
     owner: null,
     why: null,
   }),
   compensate: () => ({
     ok: false,
-    detail: "Not used in Scene 1.",
+    detail: "Not used for booking rescues.",
     changes: [],
   }),
   verify: () => false,

@@ -6,40 +6,8 @@ import type {
 } from "@/engine/docs";
 import type { LadderState } from "@/engine/ladder";
 import type { Tone, UiCandidate, UiException } from "@/engine/state";
-import type { ScenarioId } from "@/scenarios/types";
 
 export type ToneClass = "" | "green" | "amber" | "red";
-
-export const SCENE_INTRO: Record<ScenarioId, string> = {
-  "provider-cancel":
-    "QuickMove cancels Maya Chen's £300 flat move. The agent finds a replacement within policy, Maya accepts, and the money moves through Stripe. Policy, consent and every Stripe call are plain code.",
-  "bulk-cancel":
-    "The Ops Agent was approved to cancel 3 Harbour Lettings bookings and cancelled 30. ArchOS detects it, contains the agent, restores what it can, replaces what it must and gives the rest a named owner.",
-};
-
-export const OUTCOME_LABEL: Record<string, string> = {
-  settled: "Rescued and settled. Every Stripe operation is verified.",
-  remedied: "The customer declined. The full refund is verified.",
-  recovered: "Every affected booking was recovered and verified.",
-  recovered_with_exceptions:
-    "Recovered what was safe. The rest is with a named owner.",
-  no_incident: "Every change stayed inside the task. No incident.",
-};
-
-export const STATUS_LABEL: Record<DemoStatus, string> = {
-  ready: "Ready",
-  running: "In progress",
-  awaiting_approval: "Waiting for approval",
-  awaiting_customer: "Waiting for customer",
-  done: "Finished",
-};
-export const STATUS_TONE: Record<DemoStatus, ToneClass> = {
-  ready: "",
-  running: "green",
-  awaiting_approval: "amber",
-  awaiting_customer: "amber",
-  done: "green",
-};
 
 export const TONE_LABEL: Record<Tone, string> = {
   idle: "untouched",
@@ -79,7 +47,7 @@ export const REASON_LABEL: Record<string, string> = {
   invalid_args: "Invalid arguments, returned to the agent.",
   unknown_tool: "Unknown tool.",
   tool_error: "Records changed during the call.",
-  stale_run: "Call from a run that was reset.",
+  stale_run: "Made before the workspace was reset. Not executed.",
   over_subsidy: "Over the subsidy cap. Denied by policy.",
   hard_constraint: "Fails a hard constraint. Denied by policy.",
   hold_expired: "The provider hold expired.",
@@ -112,13 +80,6 @@ export const CANDIDATE_LABEL: Record<UiCandidate["state"], string> = {
   held: "Held",
   secured: "Secured",
   rejected: "Rejected",
-};
-export const CANDIDATE_TONE: Record<UiCandidate["state"], ToneClass> = {
-  potential: "",
-  confirmed: "",
-  held: "amber",
-  secured: "green",
-  rejected: "red",
 };
 
 export const OP_KIND_LABEL: Record<OpKind, string> = {

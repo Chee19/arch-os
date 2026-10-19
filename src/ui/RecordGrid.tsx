@@ -2,7 +2,7 @@
 
 import { useRef } from "react";
 import type { UiRecord } from "@/engine/state";
-import { useDemo } from "./DemoProvider";
+import { useWorkspace } from "./WorkspaceProvider";
 import { diffRecords } from "./diff";
 import { LANE_LABEL, LANES, laneOf, type Lane } from "./incidentHelpers";
 import { TONE_GLYPH, TONE_LABEL } from "./labels";
@@ -19,7 +19,7 @@ const TONES: UiRecord["tone"][] = [
 const GROUPS: (Lane | null)[] = [...LANES, null];
 
 export function RecordGrid() {
-  const { state } = useDemo();
+  const { state } = useWorkspace();
   const root = useRef<HTMLDivElement>(null);
   const prev = useRef<UiRecord[] | null>(null);
   const layout = useRef<ReturnType<typeof Flip.getState> | null>(null);
@@ -113,7 +113,7 @@ export function RecordGrid() {
           </div>
         );
       })}
-      <div className="demo-state-summary">
+      <div className="record-legend">
         {TONES.filter((t) => count(t)).map((t) => (
           <span key={t}>
             <i className={`legend-cell record-cell tone-${t}`}>

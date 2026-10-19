@@ -1,4 +1,4 @@
-import type { UiItem, UiRecord } from "@/engine/state";
+import type { DemoState, UiItem, UiRecord } from "@/engine/state";
 
 export const LANES = [
   "authorised",
@@ -50,3 +50,6 @@ export function itemTab(i: UiItem): ItemTab {
     return "restore";
   return "exception";
 }
+
+export const isSuspended = (s: DemoState): boolean =>
+  s.scenarios.find((x) => x.id === s.scenario.id)?.status === "suspended";

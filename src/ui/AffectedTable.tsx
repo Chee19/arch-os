@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRef, useState } from "react";
 import type { UiItem } from "@/engine/state";
 import { money } from "@/lib/format";
-import { useDemo } from "./DemoProvider";
+import { useWorkspace } from "./WorkspaceProvider";
 import { itemTab, type ItemTab } from "./incidentHelpers";
 import { hasOpenException, TONE_CLASS } from "./labels";
 import { gsap, useGSAP } from "./motion";
@@ -23,7 +23,7 @@ const inTab = (tab: Tab, item: UiItem | undefined) =>
   tab === "all" || (item !== undefined && itemTab(item) === tab);
 
 export function AffectedTable() {
-  const { state } = useDemo();
+  const { state } = useWorkspace();
   const [tab, setTab] = useState<Tab>("all");
   const [page, setPage] = useState(1);
   const body = useRef<HTMLTableSectionElement>(null);
@@ -61,16 +61,11 @@ export function AffectedTable() {
 
   return (
     <>
-      <div
-        className="tabs"
-        role="tablist"
-        aria-label="Affected booking filters"
-      >
+      <div className="tabs" role="group" aria-label="Affected booking filters">
         {TABS.map(([id, label]) => (
           <button
             key={id}
-            role="tab"
-            aria-selected={tab === id}
+            aria-pressed={tab === id}
             className={`tab ${tab === id ? "active" : ""}`}
             onClick={() => {
               setTab(id);
@@ -100,9 +95,7 @@ export function AffectedTable() {
                 <tr key={r.target}>
                   <td>
                     <span className="record-id">{r.target}</span>
-                    <span className="minor" style={{ color: "var(--text)" }}>
-                      {r.title}
-                    </span>
+                    <span className="minor strong">{r.title}</span>
                     <span className="minor">{r.subtitle}</span>
                   </td>
                   <td>
@@ -156,7 +149,7 @@ export function AffectedTable() {
                     {it?.assignedTo ?? it?.owner ?? "-"}
                     {hasOpenException(state.exceptions, r.target) && (
                       <span className="minor">
-                        <Link className="text-btn amber" href="/exceptions">
+                        <Link className="text-link" href="/exceptions">
                           Exception open
                         </Link>
                       </span>

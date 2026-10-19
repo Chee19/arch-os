@@ -1,66 +1,62 @@
 "use client";
 
+import { money, when } from "@/lib/format";
 import { CountUp } from "./CountUp";
-import { useDemo } from "./DemoProvider";
-import { Icon } from "./Icon";
+import { StatCard } from "./StatCard";
+import { useWorkspace } from "./WorkspaceProvider";
 import { laneCounts } from "./incidentHelpers";
 
+const count = (v: number) => <CountUp value={v} format={String} />;
+
 export function Metrics() {
-  const { state } = useDemo();
-  if (!state) return null;
-  const { metrics: m, records, scenario: s } = state;
+  const { state } = useWorkspace();
+  if (!state?.incident) return null;
+  const { metrics: m, records, incident: inc, exceptions } = state;
   const lanes = laneCounts(records);
-  const planned = m.restore + m.manual > 0;
-  const shown = (v: number) =>
-    planned ? <CountUp value={v} format={String} /> : "-";
+  const done = state.demo.status === "done";
+  const open = exceptions.filter((e) => e.status === "open");
   return (
-    <div className="metrics">
-      <div className="metric">
-        <div className="metric-label">
-          <Icon name="incident" /> Unauthorised changes
-        </div>
-        <div className={`metric-value ${m.outOfScope ? "red" : ""}`}>
-          <CountUp value={m.outOfScope} format={String} />
-          <span className="metric-sub">/ {records.length}</span>
-        </div>
-        <div className="metric-note">
-          {m.outOfScope
-            ? `${s.task?.approvedTargets.length ?? 0} were authorised`
-            : m.mutated
-              ? "All changes inside the task"
-              : "No changes yet"}
-        </div>
-      </div>
-      <div className="metric">
-        <div className="metric-label">
-          <Icon name="reset" /> Restored
-        </div>
-        <div className={`metric-value ${lanes.restored ? "green" : ""}`}>
-          {shown(lanes.restored)}
-          {planned && <span className="metric-sub">/ {m.restore}</span>}
-        </div>
-        <div className="metric-note">Original slot still free</div>
-      </div>
-      <div className="metric">
-        <div className="metric-label">
-          <Icon name="handshake" /> Replaced
-        </div>
-        <div className={`metric-value ${lanes.replaced ? "green" : ""}`}>
-          {shown(lanes.replaced)}
-        </div>
-        <div className="metric-note">
-          Client contract clause 4.2 (like-for-like)
-        </div>
-      </div>
-      <div className="metric">
-        <div className="metric-label">
-          <Icon name="user" /> Exceptions
-        </div>
-        <div className={`metric-value ${lanes.exception ? "amber" : ""}`}>
-          {shown(lanes.exception)}
-        </div>
-        <div className="metric-note">Each with a named owner</div>
-      </div>
+    <div className="stats-grid incident-stats">
+      <StatCard
+        icon="inbox"
+        tone="purple"
+        title="Unauthorised changes"
+        value={count(m.outOfScope)}
+        note={`${money(inc.values.atRiskPence)} booking value at risk`}
+      />
+      <StatCard
+        icon="check"
+        tone="mint"
+        title={done ? "Original bookings restored" : "Safe to restore"}
+        value={count(done ? lanes.restored : m.restore)}
+        note={
+          done
+            ? "Restored, delivery not confirmed"
+            : "Original capacity still available"
+        }
+      />
+      <StatCard
+        icon="people"
+        tone="blue"
+        title={done ? "Replacements secured" : "Replacement options"}
+        value={count(done ? m.replaced : m.manual)}
+        note={
+          done
+            ? "Rebooked, delivery pending"
+            : "Placed only where a slot is free"
+        }
+      />
+      <StatCard
+        icon="clock"
+        tone="peach"
+        title="Needs a person"
+        value={count(open.length)}
+        note={
+          open[0]
+            ? `${open[0].owner} · due ${when(open[0].dueAt)}`
+            : "Nothing waiting on a person"
+        }
+      />
     </div>
   );
 }

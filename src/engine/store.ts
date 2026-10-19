@@ -181,7 +181,9 @@ export async function audit(
 export async function getDemo(d: Db): Promise<DemoDoc> {
   const demo = await col.demo(d).findOne({ _id: "demo" });
   if (!demo)
-    throw new StepError("The workspace has not been set up. Reset it first.");
+    throw new StepError(
+      "The workspace has not been set up yet. Reset it from the profile menu.",
+    );
   return demo;
 }
 

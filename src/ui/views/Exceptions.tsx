@@ -3,33 +3,34 @@
 import { useState } from "react";
 import type { UiException } from "@/engine/state";
 import { when } from "@/lib/format";
-import { useDemo } from "../DemoProvider";
+import { useWorkspace } from "../WorkspaceProvider";
 import { sortExceptions } from "../exceptionHelpers";
 import { Icon } from "../Icon";
-
-const OWNERS = ["Sam Okafor", "Priya Shah"];
+import { PageHeading } from "../PageHeading";
 
 function ExceptionCard({ e }: { e: UiException }) {
-  const { state, busy, act } = useDemo();
+  const { state, busy, act } = useWorkspace();
   const [note, setNote] = useState("");
   const off = busy || Boolean(state?.demo.busy);
   const open = e.status === "open";
   const late = open && e.overdue;
   const run = (what: "refund" | "retry") =>
     void act({ action: "exception", exceptionId: e.exceptionId, do: what });
+  const id = `owner-${e.exceptionId}`;
+  const noteId = `note-${e.exceptionId}`;
   return (
     <article
-      className={`exception-card ${open ? "" : "closed"}`}
-      aria-label={`Exception for ${e.caseId ?? e.target ?? "this run"}`}
+      className={`glass exception-card ${open ? "" : "closed"}`}
+      aria-label={`Exception for ${e.caseId ?? e.target ?? "this case"}`}
     >
       <div className="between">
         <h3>{e.reason}</h3>
-        <span className={`badge ${open ? "amber" : "green"}`}>
-          <i className="dot" />
+        <span className={`badge ${open ? "peach" : "green"}`}>
+          <i />
           {open ? "Open" : "Closed"}
         </span>
       </div>
-      <dl className="facts">
+      <dl className="mini-facts exception-facts">
         <div>
           <dt>Record</dt>
           <dd className="mono">{e.caseId ?? e.target ?? "-"}</dd>
@@ -44,9 +45,14 @@ function ExceptionCard({ e }: { e: UiException }) {
         </div>
         <div>
           <dt>Due</dt>
-          <dd className={late ? "red" : ""}>
+          <dd>
             {when(e.dueAt)}
-            {late && " · Overdue"}
+            {late && (
+              <span className="badge peach">
+                <i />
+                Overdue
+              </span>
+            )}
           </dd>
         </div>
         {e.opId && (
@@ -64,10 +70,12 @@ function ExceptionCard({ e }: { e: UiException }) {
       </dl>
       {open && (
         <div className="exception-actions">
-          <label className="field">
-            Owner
+          <div>
+            <label className="form-label" htmlFor={id}>
+              Accountable owner
+            </label>
             <select
-              className="mode-select"
+              id={id}
               value={e.owner}
               disabled={off}
               onChange={(ev) =>
@@ -78,29 +86,27 @@ function ExceptionCard({ e }: { e: UiException }) {
                 })
               }
             >
-              {[...new Set([e.owner, ...OWNERS])].map((o) => (
+              {[
+                ...new Set([
+                  e.owner,
+                  state?.operator ?? e.owner,
+                  ...(state?.exceptions.map((x) => x.owner) ?? []),
+                ]),
+              ].map((o) => (
                 <option key={o} value={o}>
                   {o}
                 </option>
               ))}
             </select>
-          </label>
-          {e.action === "refund" && (
+          </div>
+          {(e.action === "refund" || e.action === "retry") && (
             <button
               className="btn primary small"
               disabled={off}
-              onClick={() => run("refund")}
+              onClick={() => run(e.action as "refund" | "retry")}
             >
-              <Icon name="refund" /> Refund now
-            </button>
-          )}
-          {e.action === "retry" && (
-            <button
-              className="btn primary small"
-              disabled={off}
-              onClick={() => run("retry")}
-            >
-              <Icon name="reset" /> Retry
+              <Icon name={e.action === "refund" ? "refund" : "reset"} />{" "}
+              {e.action === "refund" ? "Refund now" : "Retry"}
             </button>
           )}
           <form
@@ -117,17 +123,21 @@ function ExceptionCard({ e }: { e: UiException }) {
                 });
             }}
           >
-            <input
-              className="search"
-              required
-              maxLength={300}
-              placeholder="Closing note (required)"
-              aria-label="Closing note"
-              value={note}
-              onChange={(ev) => setNote(ev.target.value)}
-            />
+            <div>
+              <label className="form-label" htmlFor={noteId}>
+                Closing note
+              </label>
+              <input
+                id={noteId}
+                required
+                maxLength={300}
+                placeholder="Required to close"
+                value={note}
+                onChange={(ev) => setNote(ev.target.value)}
+              />
+            </div>
             <button
-              className="btn ghost small"
+              className="btn soft small"
               type="submit"
               disabled={off || !note.trim()}
             >
@@ -141,35 +151,36 @@ function ExceptionCard({ e }: { e: UiException }) {
 }
 
 export function ExceptionsView() {
-  const { state } = useDemo();
+  const { state } = useWorkspace();
   if (!state) return null;
   const list = sortExceptions(state.exceptions);
   const open = list.filter((e) => e.status === "open").length;
   return (
-    <section className="panel">
-      <div className="panel-head between">
-        <h2>Owned exceptions</h2>
-        <span className={`badge ${open ? "amber" : "green"}`}>
-          <i className="dot" />
-          {open} open
-        </span>
-      </div>
-      <div className="panel-body">
-        <p className="intro">
-          ArchOS never resolves these on its own. Each one has an owner, a next
-          action and a due time. Assigning records who owns it; it resolves
-          nothing.
-        </p>
-        {list.length ? (
-          list.map((e) => <ExceptionCard key={e.exceptionId} e={e} />)
-        ) : (
-          <div className="empty-state">
-            <Icon name="shield" />
-            <h2>No exceptions</h2>
-            <p>Every case in this run stayed within policy.</p>
-          </div>
-        )}
-      </div>
-    </section>
+    <>
+      <PageHeading
+        eyebrow="EVERY CASE HAS AN OWNER"
+        title="Nothing slips through."
+        subtitle="ArchOS never resolves these on its own. Each one has an owner, a next action and a due time."
+        actions={
+          <span className={`badge ${open ? "peach" : "green"}`}>
+            <i />
+            {open} open
+          </span>
+        }
+      />
+      {list.length ? (
+        <div className="exception-list">
+          {list.map((e) => (
+            <ExceptionCard key={e.exceptionId} e={e} />
+          ))}
+        </div>
+      ) : (
+        <section className="glass padded empty-state">
+          <Icon name="shield" />
+          <h2>No exceptions</h2>
+          <p>Every case stayed within your rules.</p>
+        </section>
+      )}
+    </>
   );
 }

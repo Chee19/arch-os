@@ -28,7 +28,7 @@ class ToolFailed extends Error {}
 const STALE: Denial = {
   ok: false,
   reason: "stale_run",
-  message: "This run was reset. The call was not executed.",
+  message: "The workspace was reset. The call was not executed.",
 };
 
 export { isPolicyReason } from "@/scenarios/types";

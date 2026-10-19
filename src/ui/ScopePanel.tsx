@@ -1,17 +1,17 @@
 "use client";
 
-import { useDemo } from "./DemoProvider";
+import { useWorkspace } from "./WorkspaceProvider";
 import { Icon } from "./Icon";
 
 export function ScopePanel() {
-  const { state } = useDemo();
+  const { state } = useWorkspace();
   const task = state?.scenario.task;
   if (!state || !task) return null;
   const { scenario: s, metrics: m } = state;
   return (
     <div className="scope">
       <div className="scope-box">
-        <div className="eyebrow">Authorised task · {task.id}</div>
+        <div className="eyebrow">Authorised task</div>
         <p>
           {task.approvedTargets.length} {s.targetLabel}s
         </p>

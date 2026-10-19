@@ -245,7 +245,7 @@ async function sameRun(
 ): Promise<void> {
   const cur = await col.demo(d).findOne({ _id: "demo" }, { session });
   if (cur?.runId !== demo.runId)
-    throw new StepError("This run was reset. Nothing was written.");
+    throw new StepError("The workspace was reset. Nothing was written.");
 }
 
 async function write(
@@ -484,7 +484,7 @@ export async function runUnderstand(
   const label =
     extraction.source === "live"
       ? `Live, ${extraction.model}`
-      : `Scripted fallback: ${extraction.reason}`;
+      : `Fallback values: ${extraction.reason}`;
   const operationId = `${demo.runId}:agent:understand:0`;
   const args = { caseId: CASE_ID, ...k };
   await say(
@@ -908,7 +908,7 @@ export async function exceptionAction(
   const e = await col
     .exceptions(d)
     .findOne({ exceptionId, runId: demo.runId, status: "open" });
-  if (!e) throw new StepError("That exception is not open in this run.");
+  if (!e) throw new StepError("That exception is no longer open.");
   if (act === "close") {
     if (!note?.trim())
       throw new StepError("Add a note to close the exception.");

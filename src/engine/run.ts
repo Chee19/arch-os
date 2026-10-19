@@ -53,12 +53,12 @@ export async function advance(
   if (!demo) {
     const cur = await getDemo(d);
     if (cur.status === "done")
-      throw new StepError("This run is finished. Reset to run it again.");
+      throw new StepError("This case is already complete.");
     if (cur.step === expected && cur.status === "awaiting_customer")
       throw new StepError("Waiting for the customer to respond.");
     if (cur.step === expected && cur.status === "awaiting_approval")
       throw new StepError("Waiting for approval.");
-    throw new Conflict("This run already moved on.");
+    throw new Conflict("This case already moved on.");
   }
   // Filtering by runId keeps this step's own demo-doc writes out of a newer run.
   const mine = { _id: "demo" as const, runId: demo.runId };

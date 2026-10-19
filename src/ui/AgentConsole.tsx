@@ -4,7 +4,7 @@ import { useRef } from "react";
 import type { UiAction, UiCase, UiMessage } from "@/engine/state";
 import { money, plural, when } from "@/lib/format";
 import { isPolicyReason } from "@/scenarios/types";
-import { useDemo } from "./DemoProvider";
+import { useWorkspace } from "./WorkspaceProvider";
 import { Icon } from "./Icon";
 import { REASON_LABEL } from "./labels";
 import { gsap, useGSAP } from "./motion";
@@ -62,10 +62,12 @@ function ActionEntry({
           ? "READ"
           : "EXECUTED";
   return (
-    <div className={`console-item ${a.decision}`} data-i={i}>
+    <div className={`agent-item ${a.decision}`} data-i={i}>
       <div className="between">
         <span className="mono">{a.tool}()</span>
-        <span className="console-tag">
+        <span
+          className={`badge ${a.decision === "blocked" ? "red" : a.decision === "error" ? "peach" : "neutral"}`}
+        >
           {a.decision === "blocked" && <Icon name="lock" />}
           {tag}
         </span>
@@ -85,10 +87,10 @@ function ActionEntry({
 
 function SayEntry({ m, i, agent }: { m: UiMessage; i: number; agent: string }) {
   return (
-    <div className="console-item model" data-i={i}>
+    <div className="agent-item model" data-i={i}>
       <div className="between">
         <span className="mono">{agent}</span>
-        <span className="console-tag">NOTE</span>
+        <span className="badge neutral">NOTE</span>
       </div>
       {m.text && <p>{m.text}</p>}
     </div>
@@ -106,10 +108,10 @@ function LiveEntry({
 }) {
   if (m.role === "error")
     return (
-      <div className="console-item blocked" data-i={i}>
+      <div className="agent-item blocked" data-i={i}>
         <div className="between">
           <span className="mono">{model}</span>
-          <span className="console-tag">STOPPED</span>
+          <span className="badge red">STOPPED</span>
         </div>
         <p>{m.text}</p>
       </div>
@@ -117,10 +119,12 @@ function LiveEntry({
   if (m.role === "tool") {
     const r = toolResult(m.text);
     return (
-      <div className={`console-item ${r.blocked ? "blocked" : ""}`} data-i={i}>
+      <div className={`agent-item ${r.blocked ? "blocked" : ""}`} data-i={i}>
         <div className="between">
           <span className="mono">ArchOS gateway</span>
-          <span className="console-tag">
+          <span
+            className={`badge ${r.blocked ? "red" : r.label === "REJECTED" ? "peach" : r.label === "EXECUTED" ? "green" : "neutral"}`}
+          >
             {r.blocked && <Icon name="lock" />}
             {r.label}
           </span>
@@ -130,10 +134,10 @@ function LiveEntry({
     );
   }
   return (
-    <div className="console-item model" data-i={i}>
+    <div className="agent-item model" data-i={i}>
       <div className="between">
         <span className="mono">{model}</span>
-        <span className="console-tag">TURN</span>
+        <span className="badge purple">TURN</span>
       </div>
       {m.reasoning && <p className="muted">{m.reasoning}</p>}
       {m.text && <p>{m.text}</p>}
@@ -155,8 +159,8 @@ function CaseInputs({ c }: { c: UiCase }) {
       <div className="between">
         <h3>What the agent was told</h3>
         {x && (
-          <span className={`badge ${x.source === "live" ? "green" : "amber"}`}>
-            <i className="dot" />
+          <span className={`badge ${x.source === "live" ? "green" : "peach"}`}>
+            <i />
             {x.source === "live"
               ? `Live, ${x.model ?? "model"}`
               : `Fallback values: ${x.reason ?? "no reason recorded"}`}
@@ -204,7 +208,7 @@ function CaseInputs({ c }: { c: UiCase }) {
         </dl>
       )}
       {x?.raw && (
-        <details className="demo-technical">
+        <details className="technical">
           <summary>Model output</summary>
           <pre className="raw">{x.raw}</pre>
         </details>
@@ -214,7 +218,7 @@ function CaseInputs({ c }: { c: UiCase }) {
 }
 
 export function AgentConsole() {
-  const { state, busy } = useDemo();
+  const { state, busy } = useWorkspace();
   const list = useRef<HTMLDivElement>(null);
   const seen = useRef(0);
   const size = (state?.actions.length ?? 0) + (state?.messages.length ?? 0);
@@ -255,7 +259,7 @@ export function AgentConsole() {
     (n, m) => n + (m.usage ? m.usage.prompt + m.usage.completion : 0),
     0,
   );
-  // Scripted say lines and gateway calls read as one story when merged by time.
+  // Notes and gateway calls read as one story when merged by time.
   const entries: Entry[] = live
     ? state.messages.map((m) => ({ at: m.at, m }))
     : [
@@ -266,15 +270,15 @@ export function AgentConsole() {
       ].sort((x, y) => x.at.localeCompare(y.at));
 
   return (
-    <section className="panel">
-      <div className="timeline-head between">
+    <section className="glass padded agent-console">
+      <div className="section-heading">
         <h2>Agent console</h2>
-        <span className="mono muted" style={{ fontSize: 9 }}>
+        <span className="mono muted agent-meta">
           {live ? `${agent} · ${tokens.toLocaleString("en-GB")} TOKENS` : agent}
         </span>
       </div>
       {state.case && <CaseInputs c={state.case} />}
-      <div className="console" ref={list} aria-live="polite">
+      <div className="agent-log" ref={list} aria-live="polite">
         {entries.map((e, i) =>
           "a" in e ? (
             <ActionEntry

@@ -1,6 +1,6 @@
 import type { DemoStatus } from "@/engine/docs";
 import { type LadderState, latestOps } from "@/engine/ladder";
-import type { UiPaymentOp } from "@/engine/state";
+import type { UiCandidate, UiCase, UiPaymentOp } from "@/engine/state";
 import { money } from "@/lib/format";
 import type { Split } from "@/money/math";
 import { canSubmit } from "./labels";
@@ -71,3 +71,15 @@ export const latestOf = (
   ops: UiPaymentOp[],
   kind: UiPaymentOp["kind"],
 ): UiPaymentOp | null => latestOps(ops)[kind] ?? null;
+
+export const firstName = (full: string) => full.split(" ")[0] ?? full;
+
+// The offer the case is built around: secured, else held, else the proposed one.
+export function chosenCandidate(c: UiCase): UiCandidate | null {
+  return (
+    c.candidates.find((x) => x.state === "secured") ??
+    c.candidates.find((x) => x.state === "held") ??
+    c.candidates.find((x) => x.name === c.proposal?.providerName) ??
+    null
+  );
+}

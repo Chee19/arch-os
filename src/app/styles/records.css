@@ -1,0 +1,132 @@
+.exception-list {
+  display: grid;
+  gap: 18px;
+}
+.exception-card {
+  padding: 26px;
+}
+.exception-card.closed {
+  opacity: 0.75;
+}
+.exception-card h3 {
+  margin: 0;
+  font-size: 16px;
+}
+.exception-facts,
+.report-facts {
+  margin: 12px 0 0;
+}
+.exception-facts > div,
+.report-facts > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  font-size: 12px;
+  border-bottom: 1px solid var(--line);
+}
+.exception-facts dd,
+.report-facts dd {
+  margin: 0;
+  text-align: right;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.exception-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px;
+  margin-top: 20px;
+}
+.exception-actions .form-label {
+  margin-top: 0;
+}
+.close-form {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  flex: 1 1 320px;
+}
+.close-form > div {
+  flex: 1;
+}
+.activity-log {
+  margin-top: 22px;
+}
+.activity-log td .minor {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 11px;
+  white-space: normal;
+}
+.audit-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 18px 0 0;
+  font-size: 12px;
+  color: var(--muted);
+}
+.audit-note svg {
+  width: 14px;
+  height: 14px;
+  flex: none;
+}
+section.glass + section.glass {
+  margin-top: 22px;
+}
+.policy-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+}
+.policy-grid > section.glass + section.glass {
+  margin-top: 0;
+}
+.policy-card .tile-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  margin-bottom: 19px;
+}
+.policy-card h2 {
+  margin-bottom: 12px;
+}
+.policy-card > strong {
+  display: block;
+  font-size: 13px;
+  color: var(--accent);
+}
+.policy-card p {
+  font-size: 13px;
+  line-height: 1.8;
+  margin-top: 12px;
+}
+@media (max-width: 760px) {
+  .policy-grid {
+    grid-template-columns: 1fr;
+  }
+  .exception-card {
+    padding: 20px;
+  }
+  .close-form {
+    flex-basis: 100%;
+  }
+  .exception-facts > div,
+  .report-facts > div {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .exception-facts dd,
+  .report-facts dd {
+    text-align: left;
+    justify-content: flex-start;
+  }
+}

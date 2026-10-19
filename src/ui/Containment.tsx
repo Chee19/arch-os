@@ -1,44 +1,40 @@
 "use client";
 
 import { plural } from "@/lib/format";
-import { useDemo } from "./DemoProvider";
+import { useWorkspace } from "./WorkspaceProvider";
 import { Icon } from "./Icon";
+import { isSuspended } from "./incidentHelpers";
 
 export function Containment({ onResume }: { onResume: () => void }) {
-  const { state, busy, act } = useDemo();
+  const { state, busy, act } = useWorkspace();
   if (!state) return null;
-  const suspended =
-    state.scenarios.find((x) => x.id === state.scenario.id)?.status ===
-    "suspended";
+  const suspended = isSuspended(state);
   return (
-    <section className="panel containment">
+    <section className="glass padded containment">
       <div className="between">
-        <h2 className="flex">
-          <Icon name="shield" /> Containment
-        </h2>
-        <button
-          className={`toggle ${suspended ? "" : "off"}`}
-          role="switch"
-          aria-checked={suspended}
-          aria-label={`Suspend ${state.scenario.agentName} write tools`}
-          disabled={busy}
-          onClick={() =>
-            suspended ? onResume() : void act({ action: "contain" })
-          }
-        />
-      </div>
-      <div className={`status ${suspended ? "green" : "amber"}`}>
-        <i className="dot" />
-        {suspended ? "Write tools suspended" : "Write tools active"}
+        <h3 className="flex">
+          <Icon name="shield" /> Agent access
+        </h3>
+        <span className={`badge ${suspended ? "peach" : "green"}`}>
+          <i />
+          {suspended ? "Write access paused" : "Write access active"}
+        </span>
       </div>
       <p>
         {suspended
           ? "Read access stays on for investigation."
-          : `${state.scenario.agentName} can still change bookings.`}
+          : `${state.scenario.agentName} can still change bookings.`}{" "}
+        {plural(state.metrics.blocked, "call")} blocked by the gateway.
       </p>
-      <p className="mono">
-        {plural(state.metrics.blocked, "call")} blocked by the gateway
-      </p>
+      <button
+        className="btn soft small"
+        disabled={busy}
+        onClick={() =>
+          suspended ? onResume() : void act({ action: "contain" })
+        }
+      >
+        {suspended ? "Resume write access" : "Pause write access"}
+      </button>
     </section>
   );
 }

@@ -31,7 +31,7 @@ const BACKOFF_MS = [500, 1000, 2000];
 const verifyTries = () => Number(process.env.STRIPE_VERIFY_TRIES) || 5;
 const realSleep: Sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const STALE_RUN =
-  "The run was reset while this payment was running. Nothing was saved to the new run.";
+  "The workspace was reset while this payment was running. Nothing was saved.";
 
 export const opIdOf = (
   s: Pick<OpSpec, "runId" | "caseId" | "kind" | "attempt">,

@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import { money } from "@/lib/format";
-import { useDemo } from "./DemoProvider";
+import { useWorkspace } from "./WorkspaceProvider";
 import { Icon } from "./Icon";
 import { canSubmit, hasOpenException } from "./labels";
 import { Modal } from "./Modal";
-
-const pad = (n: number) => String(n).padStart(2, "0");
 
 export function ApprovalDialog({
   open,
@@ -16,7 +14,7 @@ export function ApprovalDialog({
   open: boolean;
   onClose: () => void;
 }) {
-  const { state, busy, act } = useDemo();
+  const { state, busy, proceed } = useWorkspace();
   const [checked, setChecked] = useState(false);
   if (!state) return null;
   const { metrics: m, scenario: s, incident } = state;
@@ -29,50 +27,50 @@ export function ApprovalDialog({
   };
   const approve = () => {
     close();
-    void act({ action: "approve", confirmed: true });
+    void proceed({ action: "approve", confirmed: true });
   };
   return (
     <Modal open={open} onClose={close} labelledBy="approve-title">
       <div className="dialog-head">
         <div className="between">
           <span className="eyebrow">
-            RECOVERY PLAN / {incident?.incidentId}
+            Recovery plan · {incident?.incidentId}
           </span>
           <button className="icon-btn" aria-label="Close" onClick={close}>
             <Icon name="close" />
           </button>
         </div>
-        <h2 id="approve-title">Approve {m.restore} restores and the rescue</h2>
+        <h2 id="approve-title">Approve this recovery plan?</h2>
       </div>
       <div className="dialog-body">
         <p>
-          Each booking is re-checked before it is written. Nothing outside this
-          plan changes, and no money moves.
+          As {state.operator}, you authorise the following. Each booking is
+          re-checked before it is written.
         </p>
-        <div className="plan-row">
-          <div className="plan-count green">{pad(m.restore)}</div>
-          <div>
-            <h3>Restore</h3>
-            <p>The original slot is still free, so the booking goes back.</p>
-          </div>
-        </div>
-        <div className="plan-row">
-          <div className="plan-count amber">{pad(m.manual)}</div>
-          <div>
-            <h3>Rescue or hand to an owner</h3>
-            <p>
-              The slot was taken since the cancellation. Free qualified slots
-              are allocated within the {money(incident?.budgetPence ?? 0)}{" "}
-              incident budget. Anything left gets a named owner.
-            </p>
-          </div>
-        </div>
-        <div className="plan-row">
-          <div className="plan-count muted">{pad(approved.length)}</div>
-          <div>
-            <h3>Keep the authorised cancellations</h3>
-            <p className="mono">{approved.join(" · ")}</p>
-          </div>
+        <ul className="incident-approvals">
+          <li>
+            <strong>Restore {m.restore}</strong> original {s.targetLabel}s with
+            valid capacity.
+          </li>
+          <li>
+            <strong>Reserve budget</strong> of{" "}
+            {money(incident?.budgetPence ?? 0)} for up to {m.manual} replacement
+            offers.
+          </li>
+          <li>
+            <strong>Assign an owner</strong> to every {s.targetLabel} that
+            cannot be placed.
+          </li>
+          <li>
+            <strong>Preserve {approved.length}</strong> authorised
+            cancellations.
+          </li>
+        </ul>
+        <div className="callout">
+          <p>
+            Approval does not replace customer consent. Replacement bookings
+            stay unconfirmed until each customer accepts.
+          </p>
         </div>
         <label className="approval-check">
           <input
@@ -81,13 +79,12 @@ export function ApprovalDialog({
             onChange={(e) => setChecked(e.target.checked)}
           />
           <span>
-            I approve this plan as <strong>{state.operator}</strong>,
-            Marketplace Operations Lead.
+            I approve this plan as <strong>{state.operator}</strong>.
           </span>
         </label>
       </div>
       <div className="dialog-actions">
-        <button className="btn ghost" onClick={close}>
+        <button className="btn soft" onClick={close}>
           Back to incident
         </button>
         <button
@@ -95,7 +92,7 @@ export function ApprovalDialog({
           disabled={!checked || !allowed}
           onClick={approve}
         >
-          <Icon name="shield" /> Approve and recover
+          <Icon name="shield" /> Approve plan
         </button>
       </div>
     </Modal>
@@ -109,7 +106,7 @@ export function ResumeDialog({
   open: boolean;
   onClose: () => void;
 }) {
-  const { state, act } = useDemo();
+  const { state, act } = useWorkspace();
   if (!state) return null;
   return (
     <Modal open={open} onClose={onClose} labelledBy="resume-title">
@@ -128,11 +125,11 @@ export function ResumeDialog({
         </p>
       </div>
       <div className="dialog-actions">
-        <button className="btn ghost" onClick={onClose}>
+        <button className="btn soft" onClick={onClose}>
           Keep contained
         </button>
         <button
-          className="btn"
+          className="btn primary"
           onClick={() => {
             onClose();
             void act({ action: "resume" });

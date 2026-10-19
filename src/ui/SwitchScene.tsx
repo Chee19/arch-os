@@ -1,18 +1,22 @@
 "use client";
 
 import type { ScenarioId } from "@/scenarios/types";
-import { useDemo } from "./DemoProvider";
+import { useWorkspace } from "./WorkspaceProvider";
 import { Icon } from "./Icon";
 
 export function SwitchScene({ scenario }: { scenario: ScenarioId }) {
-  const { state, busy, act } = useDemo();
-  const name =
-    state?.scenarios.find((s) => s.id === scenario)?.name ?? scenario;
+  const { state, busy, act } = useWorkspace();
+  const target = state?.scenarios.find((s) => s.id === scenario);
+  const other = state?.scenarios.find((s) => s.id !== scenario);
+  const name = target?.name ?? "This case";
   return (
-    <section className="panel empty-state">
-      <Icon name="info" />
-      <h2>This page shows {name}</h2>
-      <p>The current run is the other scene. Switching starts a new run.</p>
+    <section className="glass padded empty-state">
+      <Icon name="inbox" />
+      <h2>{name} isn&rsquo;t open in this workspace</h2>
+      <p>
+        Opening it loads its records fresh and clears the progress on{" "}
+        {other?.short ?? "the other case"}.
+      </p>
       <button
         className="btn primary"
         disabled={busy}
@@ -20,7 +24,7 @@ export function SwitchScene({ scenario }: { scenario: ScenarioId }) {
           void act({ action: "configure", scenario, source: "scripted" })
         }
       >
-        Switch scene <Icon name="arrow" />
+        Open {target?.short ?? "case"} <Icon name="arrow" />
       </button>
     </section>
   );

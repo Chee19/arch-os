@@ -12,23 +12,27 @@ import {
 } from "react";
 import type { Action } from "@/engine/actions";
 import type { DemoState } from "@/engine/state";
+import { shouldContinue } from "./nextStep";
 
-type DemoContextValue = {
+type WorkspaceContextValue = {
   state: DemoState | null;
   busy: boolean;
   error: string | null;
   toast: string | null;
   act: (a: Action) => Promise<boolean>;
+  // Runs the action, then keeps advancing until the case reaches a step that needs a person.
+  proceed: (first: Action) => Promise<boolean>;
   notify: (message: string) => void;
   retry: () => Promise<void>;
 };
 
-const DemoContext = createContext<DemoContextValue | null>(null);
-const KEY = "archos-presenter-key";
+const WorkspaceContext = createContext<WorkspaceContextValue | null>(null);
+const KEY = "archos-access-key";
 
-export function useDemo(): DemoContextValue {
-  const ctx = useContext(DemoContext);
-  if (!ctx) throw new Error("useDemo must be used inside DemoProvider");
+export function useWorkspace(): WorkspaceContextValue {
+  const ctx = useContext(WorkspaceContext);
+  if (!ctx)
+    throw new Error("useWorkspace must be used inside WorkspaceProvider");
   return ctx;
 }
 
@@ -43,11 +47,13 @@ async function fetchState(): Promise<DemoState> {
   return (await res.json()) as DemoState;
 }
 
-export function DemoProvider({ children }: { children: ReactNode }) {
+export function WorkspaceProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<DemoState | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [chaining, setChaining] = useState(false);
+  const chain = useRef(false);
   const epoch = useRef(0);
   const polling = useRef(false);
   // busy lags one render, so two clicks in the same frame would both post without this.
@@ -87,9 +93,9 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     window.setTimeout(() => setToast((t) => (t === message ? null : t)), 4000);
   }, []);
 
-  const act = useCallback(
-    async (a: Action): Promise<boolean> => {
-      if (inflight.current) return false;
+  const send = useCallback(
+    async (a: Action): Promise<DemoState | null> => {
+      if (inflight.current) return null;
       inflight.current = true;
       setBusy(true);
       const timer = window.setInterval(() => void poll(), 400);
@@ -106,7 +112,7 @@ export function DemoProvider({ children }: { children: ReactNode }) {
         let res = await post(window.localStorage.getItem(KEY));
         if (res.status === 401) {
           const key = window.prompt("Access key");
-          if (!key) return false;
+          if (!key) return null;
           window.localStorage.setItem(KEY, key);
           res = await post(key);
         }
@@ -116,16 +122,16 @@ export function DemoProvider({ children }: { children: ReactNode }) {
           setState(next);
           setError(null);
           if (next.notice) notify(next.notice);
-          return true;
+          return next;
         }
         // A 409 means another click or tab moved the run on: show that state, not an error page.
         notify(await errorOf(res));
         setState(await fetchState());
         setError(null);
-        return false;
+        return null;
       } catch (e) {
         notify(e instanceof Error ? e.message : String(e));
-        return false;
+        return null;
       } finally {
         window.clearInterval(timer);
         inflight.current = false;
@@ -135,9 +141,58 @@ export function DemoProvider({ children }: { children: ReactNode }) {
     [poll, notify],
   );
 
-  const value = useMemo(
-    () => ({ state, busy, error, toast, act, notify, retry: poll }),
-    [state, busy, error, toast, act, notify, poll],
+  const act = useCallback(
+    async (a: Action) => !chain.current && (await send(a)) !== null,
+    [send],
   );
-  return <DemoContext.Provider value={value}>{children}</DemoContext.Provider>;
+
+  const proceed = useCallback(
+    async (first: Action) => {
+      if (chain.current || inflight.current) return false;
+      chain.current = true;
+      // Held for the whole chain, so buttons never flicker back on between steps.
+      setChaining(true);
+      try {
+        let next = await send(first);
+        while (next && shouldContinue(next))
+          next = await send({ action: "advance", step: next.demo.step });
+        return next !== null;
+      } finally {
+        chain.current = false;
+        setChaining(false);
+      }
+    },
+    [send],
+  );
+
+  const value = useMemo(
+    () => ({
+      state,
+      // The server flag covers steps started by another tab or before a reload.
+      busy: busy || chaining || serverBusy,
+      error,
+      toast,
+      act,
+      proceed,
+      notify,
+      retry: poll,
+    }),
+    [
+      state,
+      busy,
+      chaining,
+      serverBusy,
+      error,
+      toast,
+      act,
+      proceed,
+      notify,
+      poll,
+    ],
+  );
+  return (
+    <WorkspaceContext.Provider value={value}>
+      {children}
+    </WorkspaceContext.Provider>
+  );
 }
